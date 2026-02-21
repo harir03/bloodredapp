@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "712685918523",
+    "project_id": "bloodrepo-7f408",
+    "storage_bucket": "bloodrepo-7f408.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:712685918523:android:c207c4cde1494e27db7f1e",
+        "android_client_info": {
+          "package_name": "com.bloodrepo.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCJN21ratP4B3FgNxiMQW4stjjxuXqEbWM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
