@@ -81,15 +81,6 @@ const LoginScreen = ({ navigation }: any) => {
               Register
             </Text>
           </Text>
-
-          <View style={styles.testCredentials}>
-            <Text style={styles.testTitle}>Test Accounts:</Text>
-            <Text style={styles.testItem}>admin@test.com / password</Text>
-            <Text style={styles.testItem}>citymanager@test.com / password</Text>
-            <Text style={styles.testItem}>helpline@test.com / password</Text>
-            <Text style={styles.testItem}>hr@test.com / password</Text>
-            <Text style={styles.testItem}>volunteer@test.com / password</Text>
-          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -147,22 +138,6 @@ const styles = StyleSheet.create({
   registerLink: {
     color: COLORS.primary,
     fontWeight: "bold",
-  },
-  testCredentials: {
-    marginTop: SPACING.xxl,
-    padding: SPACING.m,
-    backgroundColor: COLORS.surface2,
-    borderRadius: 8,
-  },
-  testTitle: {
-    ...FONTS.label,
-    color: COLORS.text_muted,
-    marginBottom: SPACING.xs,
-  },
-  testItem: {
-    ...FONTS.caption,
-    color: COLORS.text_muted,
-    lineHeight: 20,
   },
 });
 
