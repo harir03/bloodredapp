@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
     ActivityIndicator,
     RefreshControl,
@@ -11,22 +11,56 @@ import AppCard from "../../components/ui/AppCard";
 import SectionHeader from "../../components/ui/SectionHeader";
 import { COLORS, FONTS, SPACING } from "../../constants/theme";
 import { useCount } from "../../hooks/useQuery";
-import { taskService } from "../../services";
+import { taskService, volunteerService } from "../../services";
 import { useAuth } from "../../stores/AuthProvider";
 
 const VolunteerDashboardScreen = () => {
-  const { userId } = useAuth();
-  const assigned = useCount(() =>
-    taskService.count({ assigned_to: userId || "" }),
+  const { userEmail } = useAuth();
+
+  // tasks.assigned_to is a UUID from the volunteers table, not the profile id.
+  const [volunteerUUID, setVolunteerUUID] = useState<string | null>(null);
+  useEffect(() => {
+    if (userEmail) {
+      volunteerService
+        .getByEmail(userEmail)
+        .then(({ data }) => setVolunteerUUID(data?.id ?? null))
+        .catch(() => {});
+    }
+  }, [userEmail]);
+
+  const noUUID = !volunteerUUID;
+  const noop = () => Promise.resolve({ count: 0, error: null });
+
+  const assigned = useCount(
+    () => (noUUID ? noop() : taskService.count({ assigned_to: volunteerUUID })),
+    [volunteerUUID],
   );
-  const completed = useCount(() =>
-    taskService.count({ assigned_to: userId || "", status: "completed" }),
+  const completed = useCount(
+    () =>
+      noUUID
+        ? noop()
+        : taskService.count({
+            assigned_to: volunteerUUID,
+            status: "completed",
+          }),
+    [volunteerUUID],
   );
-  const pending = useCount(() =>
-    taskService.count({ assigned_to: userId || "", status: "pending" }),
+  const pending = useCount(
+    () =>
+      noUUID
+        ? noop()
+        : taskService.count({ assigned_to: volunteerUUID, status: "pending" }),
+    [volunteerUUID],
   );
-  const inProgress = useCount(() =>
-    taskService.count({ assigned_to: userId || "", status: "in_progress" }),
+  const inProgress = useCount(
+    () =>
+      noUUID
+        ? noop()
+        : taskService.count({
+            assigned_to: volunteerUUID,
+            status: "in_progress",
+          }),
+    [volunteerUUID],
   );
 
   const loading =

@@ -27,6 +27,7 @@ interface AuthContextType {
     password: string,
     name: string,
     role?: UserRole,
+    bloodGroup?: string,
   ) => Promise<boolean>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -76,14 +77,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         .from("profiles")
         .select("*")
         .eq("id", uid)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.warn("Profile fetch error:", error.message);
         setProfile(null);
         return;
       }
-      setProfile(data as Profile);
+      setProfile(data as Profile | null);
     } catch (e) {
       console.error("Profile fetch exception:", e);
       setProfile(null);
@@ -121,6 +122,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     password: string,
     name: string,
     role: UserRole = "volunteer",
+    bloodGroup?: string,
   ): Promise<boolean> => {
     try {
       const credential = await createUserWithEmailAndPassword(
@@ -138,6 +140,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           email: email.toLowerCase(),
           name,
           role,
+          blood_group: bloodGroup || null,
           is_active: true,
         });
 

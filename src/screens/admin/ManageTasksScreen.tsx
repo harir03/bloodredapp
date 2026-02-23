@@ -1,3 +1,4 @@
+import { FontAwesome5 } from "@expo/vector-icons";
 import React, { useCallback } from "react";
 import {
     ActivityIndicator,
@@ -6,6 +7,7 @@ import {
     StyleSheet,
     View,
 } from "react-native";
+import AppButton from "../../components/ui/AppButton";
 import EmptyState from "../../components/ui/EmptyState";
 import ListItem from "../../components/ui/ListItem";
 import SectionHeader from "../../components/ui/SectionHeader";
@@ -14,7 +16,14 @@ import { useQuery } from "../../hooks/useQuery";
 import { taskService } from "../../services";
 import { Task } from "../../types/database";
 
-const AssignedTasksScreen = ({ navigation }: any) => {
+const PRIORITY_COLOR: Record<string, string> = {
+  low: COLORS.text_muted,
+  medium: COLORS.info,
+  high: COLORS.warning,
+  urgent: COLORS.danger,
+};
+
+const ManageTasksScreen = ({ navigation }: any) => {
   const {
     data: tasks,
     loading,
@@ -25,8 +34,9 @@ const AssignedTasksScreen = ({ navigation }: any) => {
     ({ item }: { item: Task }) => (
       <ListItem
         title={item.title}
-        subtitle={item.description || "No description"}
-        status={item.status}
+        subtitle={`${item.type.replace(/_/g, " ")} · ${item.city || "No city"}`}
+        rightText={item.priority.toUpperCase()}
+        rightTextColor={PRIORITY_COLOR[item.priority] || COLORS.text_muted}
         onPress={() => navigation.navigate("TaskDetails", { taskId: item.id })}
       />
     ),
@@ -35,7 +45,7 @@ const AssignedTasksScreen = ({ navigation }: any) => {
 
   return (
     <View style={styles.container}>
-      <SectionHeader title="Assigned Tasks" />
+      <SectionHeader title="All Tasks" />
       {loading && tasks.length === 0 ? (
         <ActivityIndicator
           size="large"
@@ -47,6 +57,7 @@ const AssignedTasksScreen = ({ navigation }: any) => {
           data={tasks}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
+          contentContainerStyle={styles.list}
           refreshControl={
             <RefreshControl
               refreshing={loading}
@@ -54,9 +65,25 @@ const AssignedTasksScreen = ({ navigation }: any) => {
               tintColor={COLORS.primary}
             />
           }
-          ListEmptyComponent={<EmptyState message="No tasks assigned" />}
+          ListEmptyComponent={
+            <EmptyState
+              icon={
+                <FontAwesome5
+                  name="tasks"
+                  size={32}
+                  color={COLORS.text_muted}
+                />
+              }
+              message="No tasks found"
+            />
+          }
         />
       )}
+      <AppButton
+        title="Add Task"
+        onPress={() => navigation.navigate("AddTask")}
+        style={styles.addBtn}
+      />
     </View>
   );
 };
@@ -67,6 +94,13 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
     padding: SPACING.m,
   },
+  list: {
+    gap: SPACING.s,
+    paddingBottom: SPACING.xxxl,
+  },
+  addBtn: {
+    marginTop: SPACING.s,
+  },
 });
 
-export default AssignedTasksScreen;
+export default ManageTasksScreen;

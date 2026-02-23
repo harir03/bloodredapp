@@ -24,9 +24,7 @@ const AdminDashboardScreen = () => {
   const volunteers = useCount(() =>
     volunteerService.count({ status: "active" }),
   );
-  const activeTasks = useCount(() =>
-    taskService.count({ status: "in_progress" }),
-  );
+  const activeTasks = useCount(() => taskService.countActive());
 
   const loading =
     users.loading || calls.loading || volunteers.loading || activeTasks.loading;

@@ -38,29 +38,45 @@ const TaskDetailsScreen = ({ route, navigation }: any) => {
     <View style={styles.container}>
       <SectionHeader title="Task Details" />
       <View style={styles.detailsContainer}>
-        <Text style={styles.label}>Title:</Text>
-        <Text style={styles.value}>{task.title}</Text>
-        <Text style={styles.label}>Description:</Text>
-        <Text style={styles.value}>{task.description || "N/A"}</Text>
-        <Text style={styles.label}>Type:</Text>
-        <Text style={styles.value}>{task.type}</Text>
-        <Text style={styles.label}>Priority:</Text>
-        <Text style={styles.value}>{task.priority}</Text>
-        <Text style={styles.label}>Status:</Text>
-        <Text style={styles.value}>{task.status}</Text>
+        <View style={styles.row}>
+          <Text style={styles.label}>Title</Text>
+          <Text style={styles.value}>{task.title}</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>Description</Text>
+          <Text style={styles.value}>{task.description || "N/A"}</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>Type</Text>
+          <Text style={styles.value}>{task.type.replace(/_/g, " ")}</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>Priority</Text>
+          <Text style={styles.value}>{task.priority}</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>Status</Text>
+          <Text style={styles.value}>{task.status.replace(/_/g, " ")}</Text>
+        </View>
         {task.location ? (
-          <>
-            <Text style={styles.label}>Location:</Text>
+          <View style={styles.row}>
+            <Text style={styles.label}>Location</Text>
             <Text style={styles.value}>{task.location}</Text>
-          </>
+          </View>
+        ) : null}
+        {task.city ? (
+          <View style={styles.row}>
+            <Text style={styles.label}>City</Text>
+            <Text style={styles.value}>{task.city}</Text>
+          </View>
         ) : null}
         {task.due_date ? (
-          <>
-            <Text style={styles.label}>Due:</Text>
+          <View style={styles.row}>
+            <Text style={styles.label}>Due Date</Text>
             <Text style={styles.value}>
               {new Date(task.due_date).toLocaleDateString()}
             </Text>
-          </>
+          </View>
         ) : null}
       </View>
       <AppButton title="Go Back" onPress={() => navigation.goBack()} />
@@ -75,20 +91,26 @@ const styles = StyleSheet.create({
     padding: SPACING.m,
   },
   detailsContainer: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.surface,
     padding: SPACING.m,
     borderRadius: SPACING.s,
     marginBottom: SPACING.m,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  row: {
+    marginBottom: SPACING.m,
   },
   label: {
-    ...FONTS.h4,
-    color: COLORS.text_secondary,
-    marginBottom: SPACING.xs,
+    ...FONTS.label,
+    color: COLORS.text_muted,
+    marginBottom: 2,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
   value: {
-    ...FONTS.body3,
+    ...FONTS.body,
     color: COLORS.text_primary,
-    marginBottom: SPACING.m,
   },
 });
 

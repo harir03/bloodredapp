@@ -75,7 +75,7 @@ export async function fetchById<T>(
     .from(table)
     .select("*")
     .eq("id", id)
-    .single();
+    .maybeSingle();
 
   return {
     data: data as T | null,
@@ -91,7 +91,7 @@ export async function create<T>(
     .from(table)
     .insert(record)
     .select()
-    .single();
+    .maybeSingle();
 
   return {
     data: data as T | null,

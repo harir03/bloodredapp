@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS profiles (
   name TEXT NOT NULL,
   role TEXT NOT NULL CHECK (role IN ('admin', 'city_manager', 'helpline', 'hr_manager', 'volunteer')),
   phone TEXT,
+  blood_group TEXT CHECK (blood_group IN ('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-')),
   avatar_url TEXT,
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT NOW(),

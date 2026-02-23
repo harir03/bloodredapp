@@ -5,6 +5,7 @@ import {
     ScrollView,
     StyleSheet,
     Text,
+    TouchableOpacity,
     View,
 } from "react-native";
 import AppButton from "../../components/ui/AppButton";
@@ -13,10 +14,13 @@ import { COLORS, FONTS, SPACING } from "../../constants/theme";
 import { useAuth } from "../../stores/AuthProvider";
 import { useToast } from "../../stores/ToastProvider";
 
+const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
+
 const RegisterScreen = ({ navigation }: any) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [bloodGroup, setBloodGroup] = useState("");
   const [loading, setLoading] = useState(false);
   const { addToast } = useToast();
   const { register } = useAuth();
@@ -26,16 +30,25 @@ const RegisterScreen = ({ navigation }: any) => {
       addToast("Please fill all fields", "warning");
       return;
     }
+    if (!bloodGroup) {
+      addToast("Please select your blood group", "warning");
+      return;
+    }
     if (password.length < 6) {
       addToast("Password must be at least 6 characters", "warning");
       return;
     }
     setLoading(true);
     try {
-      const success = await register(email, password, name);
+      const success = await register(
+        email,
+        password,
+        name,
+        "volunteer",
+        bloodGroup,
+      );
       if (success) {
         addToast("Registration successful! You are now signed in.", "success");
-        // Auth state listener will auto-navigate
       } else {
         addToast("Registration failed", "danger");
       }
@@ -76,6 +89,28 @@ const RegisterScreen = ({ navigation }: any) => {
             placeholder="Enter your password"
             secureTextEntry
           />
+
+          {/* Blood Group Selector */}
+          <Text style={styles.selectorLabel}>Blood Group *</Text>
+          <View style={styles.chipRow}>
+            {BLOOD_GROUPS.map((bg) => (
+              <TouchableOpacity
+                key={bg}
+                onPress={() => setBloodGroup(bg)}
+                style={[styles.chip, bloodGroup === bg && styles.chipActive]}
+              >
+                <Text
+                  style={[
+                    styles.chipText,
+                    bloodGroup === bg && styles.chipTextActive,
+                  ]}
+                >
+                  {bg}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
           <AppButton
             title="Create Account"
             onPress={handleRegister}
@@ -118,6 +153,39 @@ const styles = StyleSheet.create({
     color: COLORS.text_primary,
     textAlign: "center",
     marginBottom: SPACING.xxxl,
+  },
+  selectorLabel: {
+    ...FONTS.label,
+    color: COLORS.text_muted,
+    marginBottom: SPACING.s,
+    marginTop: SPACING.s,
+  },
+  chipRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: SPACING.s,
+    marginBottom: SPACING.l,
+  },
+  chip: {
+    paddingHorizontal: SPACING.m,
+    paddingVertical: SPACING.s,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    minWidth: 52,
+    alignItems: "center",
+  },
+  chipActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  chipText: {
+    ...FONTS.label,
+    color: COLORS.text_muted,
+  },
+  chipTextActive: {
+    color: COLORS.white,
+    fontWeight: "700",
   },
   loginText: {
     ...FONTS.body,

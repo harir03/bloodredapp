@@ -6,6 +6,7 @@ import TabBar from "../../components/ui/TabBar";
 import { COLORS } from "../../constants/theme";
 import { useAuth } from "../../stores/AuthProvider";
 import AdminDashboardScreen from "./AdminDashboardScreen";
+import ManageTasksScreen from "./ManageTasksScreen";
 import ManageUsersScreen from "./ManageUsersScreen";
 
 const Tab = createBottomTabNavigator();
@@ -49,6 +50,15 @@ const AdminNavigator = () => {
         options={{
           tabBarIcon: ({ color, size }) => (
             <FontAwesome5 name="users" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Tasks"
+        component={ManageTasksScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <FontAwesome5 name="tasks" color={color} size={size} />
           ),
         }}
       />

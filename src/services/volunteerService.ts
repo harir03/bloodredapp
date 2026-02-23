@@ -48,6 +48,11 @@ export const volunteerService = {
       ...options,
       filters: { ...options?.filters, status: "active" },
     }),
+
+  getByEmail: (email: string): Promise<ServiceResult<Volunteer>> =>
+    fetchAll<Volunteer>(TABLE, { filters: { email }, limit: 1 }).then(
+      ({ data, error }) => ({ data: data[0] ?? null, error }),
+    ),
 };
 
 export default volunteerService;
