@@ -1,4 +1,10 @@
-import { supabase } from "../config/supabase";
+import {
+    collection,
+    getCountFromServer,
+    query,
+    where,
+} from "firebase/firestore";
+import { db } from "../config/firebase";
 import type { Task } from "../types/database";
 import type { ListResult, QueryOptions, ServiceResult } from "./baseService";
 import {
@@ -32,11 +38,16 @@ export const taskService = {
 
   // Count tasks that are not completed or cancelled
   countActive: async (): Promise<{ count: number; error: string | null }> => {
-    const { count, error } = await supabase
-      .from(TABLE)
-      .select("*", { count: "exact", head: true })
-      .not("status", "in", '("completed","cancelled")');
-    return { count: count || 0, error: error?.message || null };
+    try {
+      const q = query(
+        collection(db, TABLE),
+        where("status", "not-in", ["completed", "cancelled"]),
+      );
+      const snap = await getCountFromServer(q);
+      return { count: snap.data().count, error: null };
+    } catch (e: any) {
+      return { count: 0, error: e.message ?? "Count failed" };
+    }
   },
 
   getByVolunteer: (

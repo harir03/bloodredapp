@@ -1,61 +1,293 @@
-// Supabase Database Types
-// These match the tables you should create in your Supabase project.
-// Run the SQL in src/config/schema.sql in the Supabase SQL editor to create them.
+// Firestore Database Types — BloodConnect Ops Architecture
 
 export type UserRole =
   | "admin"
   | "city_manager"
-  | "helpline"
   | "hr_manager"
+  | "helpline"
   | "volunteer";
 
-export interface Profile {
-  id: string; // Firebase UID
+export type BloodGroup =
+  | "A+"
+  | "A-"
+  | "B+"
+  | "B-"
+  | "AB+"
+  | "AB-"
+  | "O+"
+  | "O-";
+
+// /users/{userId}
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  role: UserRole;
+  city?: string;
+  cluster?: string;
+  status: "active" | "inactive";
+  avatarUrl?: string;
+  createdAt: string;
+  lastActive?: string;
+  fcmToken?: string;
+  points: number;
+  badges: string[];
+}
+
+// Profile is an alias kept for backward compat
+export type Profile = {
+  id: string;
   email: string;
   name: string;
   role: UserRole;
   phone?: string;
-  blood_group?: string;
+  blood_group?: BloodGroup | string;
   avatar_url?: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  city?: string;
+  fcmToken?: string;
+  points?: number;
+  badges?: string[];
+};
+
+export interface AttendanceEntry {
+  date: string;
+  campId: string;
+  status: "present" | "absent" | "late";
 }
 
+// /volunteers/{volunteerId}
 export interface Volunteer {
+  id: string;
+  profile_id?: string;
+  userId?: string;
+  name: string;
+  email: string;
+  phone: string;
+  blood_group: BloodGroup | string;
+  bloodGroup?: BloodGroup | string;
+  skills: string[];
+  area: string;
+  city: string;
+  cluster?: string;
+  status: "active" | "inactive" | "on_leave";
+  assigned_city_manager_id?: string;
+  totalTasksCompleted: number;
+  tasks_completed: number;
+  totalCampsAttended: number;
+  currentTaskId?: string | null;
+  points: number;
+  badges: string[];
+  joinedAt: string;
+  joined_at: string;
+  lastActiveAt?: string;
+  attendanceLog: AttendanceEntry[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DonationHistoryEntry {
+  date: string;
+  camp?: string;
+  units: number;
+}
+
+// /donors/{donorId}
+export interface Donor {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  bloodGroup: BloodGroup | string;
+  blood_group?: BloodGroup | string;
+  city: string;
+  area?: string;
+  pincode?: string;
+  age?: number;
+  address?: string;
+  lastDonationDate?: string;
+  last_donation_date?: string;
+  totalDonations: number;
+  total_donations?: number;
+  status: "available" | "unavailable" | "deferred";
+  is_eligible?: boolean;
+  privacyConsent: boolean;
+  medicalNotes?: string;
+  medical_notes?: string;
+  donationHistory: DonationHistoryEntry[];
+  createdAt: string;
+  updatedAt: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ResponseLogEntry {
+  timestamp: string;
+  action: string;
+  by: string;
+  byName?: string;
+}
+
+export interface AIMatchResult {
+  id: string;
+  name: string;
+  score: number;
+  reason: string;
+}
+
+// /bloodRequests/{requestId}
+export interface BloodRequest {
+  id: string;
+  requestedBy: string;
+  requestedByName?: string;
+  patientName: string;
+  bloodGroup: BloodGroup | string;
+  units: number;
+  hospital: string;
+  city: string;
+  urgency: "low" | "medium" | "critical";
+  status: "pending" | "in_progress" | "completed" | "escalated" | "cancelled";
+  assignedVolunteerId?: string | null;
+  assignedVolunteerName?: string;
+  assignedAt?: string;
+  resolvedAt?: string;
+  createdAt: string;
+  escalationLevel: 0 | 1 | 2 | 3;
+  notes?: string;
+  responseLog: ResponseLogEntry[];
+  aiMatchScore?: number;
+  aiMatchResults?: {
+    donors: AIMatchResult[];
+    volunteers: AIMatchResult[];
+  };
+}
+
+// /events/{eventId}
+export interface BloodEvent {
+  id: string;
+  title: string;
+  description?: string;
+  city: string;
+  cluster?: string;
+  venue: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  organizer: string;
+  organizerName?: string;
+  status: "upcoming" | "ongoing" | "completed" | "cancelled";
+  volunteersAssigned: string[];
+  expectedDonors: number;
+  actualDonors: number;
+  leadsCollected: number;
+  reportSummary?: string;
+  createdAt: string;
+  // Legacy compat
+  event_type?: string;
+  location?: string;
+  start_time?: string;
+  end_time?: string;
+  registered_count?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// /tasks/{taskId}
+export interface Task {
+  id: string;
+  title: string;
+  description?: string;
+  assignedTo: string;
+  assignedToName?: string;
+  assignedBy: string;
+  assignedByName?: string;
+  eventId?: string;
+  status: "pending" | "in_progress" | "completed" | "overdue";
+  dueDate?: string;
+  completedAt?: string;
+  createdAt: string;
+  priority: "low" | "medium" | "high";
+  points_reward?: number;
+  // Legacy compat
+  assigned_to?: string;
+  assigned_by?: string;
+  due_date?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// /notifications/{notificationId}
+export interface AppNotification {
+  id: string;
+  userId: string;
+  title: string;
+  body: string;
+  type:
+    | "task_assigned"
+    | "request_matched"
+    | "request_escalated"
+    | "badge_earned"
+    | "event_reminder"
+    | "task_overdue"
+    | "general";
+  read: boolean;
+  createdAt: string;
+  linkedEntity?: {
+    type: "request" | "task" | "event" | "volunteer";
+    id: string;
+  };
+}
+
+// /chatSessions/{sessionId}
+export interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+  timestamp: string;
+}
+
+export interface ChatSession {
+  id: string;
+  requestId?: string;
+  agentId: string;
+  messages: ChatMessage[];
+  createdAt: string;
+}
+
+// /leaderboard/{city}
+export interface LeaderboardEntry {
+  userId: string;
+  name: string;
+  points: number;
+  rank: number;
+  avatarUrl?: string;
+  badgeCount?: number;
+}
+
+export interface CityLeaderboard {
+  id: string;
+  topVolunteers: LeaderboardEntry[];
+  updatedAt: string;
+}
+
+// /staff/{staffId}
+export interface Staff {
   id: string;
   name: string;
   email: string;
   phone: string;
-  blood_group: string;
-  area: string;
-  city: string;
+  role: UserRole;
+  department: string;
+  city?: string;
   status: "active" | "inactive" | "on_leave";
-  assigned_city_manager_id?: string;
-  tasks_completed: number;
-  points: number;
   joined_at: string;
   created_at: string;
   updated_at: string;
 }
 
-export interface Donor {
-  id: string;
-  name: string;
-  email?: string;
-  phone: string;
-  blood_group: string;
-  age: number;
-  address: string;
-  city: string;
-  last_donation_date?: string;
-  total_donations: number;
-  is_eligible: boolean;
-  medical_notes?: string;
-  created_at: string;
-  updated_at: string;
-}
-
+// /helpline_calls — legacy
 export interface HelplineCall {
   id: string;
   caller_name: string;
@@ -77,120 +309,4 @@ export interface HelplineCall {
   resolved_at?: string;
   created_at: string;
   updated_at: string;
-}
-
-export interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  type:
-    | "blood_delivery"
-    | "donor_visit"
-    | "event_setup"
-    | "awareness_drive"
-    | "other";
-  status: "pending" | "assigned" | "in_progress" | "completed" | "cancelled";
-  priority: "low" | "medium" | "high" | "urgent";
-  assigned_to?: string; // volunteer id
-  assigned_by?: string; // profile id
-  location?: string;
-  city?: string;
-  due_date?: string;
-  completed_at?: string;
-  points_reward: number;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Staff {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  role: UserRole;
-  department: string;
-  city?: string;
-  status: "active" | "inactive" | "on_leave";
-  joined_at: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface BloodEvent {
-  id: string;
-  title: string;
-  description?: string;
-  event_type:
-    | "blood_drive"
-    | "awareness_camp"
-    | "volunteer_meetup"
-    | "training"
-    | "other";
-  location: string;
-  city: string;
-  date: string;
-  start_time: string;
-  end_time: string;
-  status: "upcoming" | "ongoing" | "completed" | "cancelled";
-  organizer_id: string;
-  max_participants?: number;
-  registered_count: number;
-  units_collected?: number;
-  created_at: string;
-  updated_at: string;
-}
-
-// Supabase generated Database type
-export interface Database {
-  public: {
-    Tables: {
-      profiles: {
-        Row: Profile;
-        Insert: Omit<Profile, "created_at" | "updated_at">;
-        Update: Partial<Omit<Profile, "id" | "created_at">>;
-      };
-      volunteers: {
-        Row: Volunteer;
-        Insert: Omit<
-          Volunteer,
-          "id" | "created_at" | "updated_at" | "tasks_completed" | "points"
-        >;
-        Update: Partial<Omit<Volunteer, "id" | "created_at">>;
-      };
-      donors: {
-        Row: Donor;
-        Insert: Omit<
-          Donor,
-          "id" | "created_at" | "updated_at" | "total_donations"
-        >;
-        Update: Partial<Omit<Donor, "id" | "created_at">>;
-      };
-      helpline_calls: {
-        Row: HelplineCall;
-        Insert: Omit<HelplineCall, "id" | "created_at" | "updated_at">;
-        Update: Partial<Omit<HelplineCall, "id" | "created_at">>;
-      };
-      tasks: {
-        Row: Task;
-        Insert: Omit<Task, "id" | "created_at" | "updated_at">;
-        Update: Partial<Omit<Task, "id" | "created_at">>;
-      };
-      staff: {
-        Row: Staff;
-        Insert: Omit<Staff, "id" | "created_at" | "updated_at">;
-        Update: Partial<Omit<Staff, "id" | "created_at">>;
-      };
-      blood_events: {
-        Row: BloodEvent;
-        Insert: Omit<
-          BloodEvent,
-          "id" | "created_at" | "updated_at" | "registered_count"
-        >;
-        Update: Partial<Omit<BloodEvent, "id" | "created_at">>;
-      };
-    };
-    Views: {};
-    Functions: {};
-    Enums: {};
-  };
 }

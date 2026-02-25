@@ -1,6 +1,21 @@
-// Generic Supabase CRUD service
-import type { PostgrestError } from "@supabase/supabase-js";
-import { supabase } from "../config/supabase";
+// Generic Firestore CRUD service
+import {
+    addDoc,
+    collection,
+    deleteDoc,
+    doc,
+    getCountFromServer,
+    getDoc,
+    getDocs,
+    limit,
+    orderBy,
+    query,
+    QueryConstraint,
+    setDoc,
+    updateDoc,
+    where,
+} from "firebase/firestore";
+import { db } from "../config/firebase";
 
 export interface ServiceResult<T> {
   data: T | null;
@@ -22,122 +37,168 @@ export interface QueryOptions {
   search?: { column: string; query: string };
 }
 
-function formatError(error: PostgrestError | null): string | null {
-  if (!error) return null;
-  return error.message || "An unknown error occurred";
+function docToRecord<T>(id: string, data: Record<string, any>): T {
+  return { id, ...data } as T;
 }
 
 export async function fetchAll<T>(
-  table: string,
+  col: string,
   options: QueryOptions = {},
 ): Promise<ListResult<T>> {
   const {
     page = 1,
-    limit = 25,
-    orderBy = "created_at",
+    limit: pageLimit = 25,
+    orderBy: orderField = "created_at",
     ascending = false,
     filters = {},
     search,
   } = options;
 
-  let query = supabase
-    .from(table)
-    .select("*", { count: "exact" })
-    .order(orderBy, { ascending })
-    .range((page - 1) * limit, page * limit - 1);
+  try {
+    const constraints: QueryConstraint[] = [];
+    const hasFilters = Object.values(filters).some(
+      (v) => v !== undefined && v !== null && v !== "",
+    );
 
-  // Apply filters
-  Object.entries(filters).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== "") {
-      query = query.eq(key, value);
+    // Apply equality filters
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        constraints.push(where(key, "==", value));
+      }
+    });
+
+    // Firestore requires a composite index when combining where() on one field
+    // with orderBy() on a different field. To avoid that, only add server-side
+    // orderBy when there are no filters; otherwise sort client-side below.
+    if (!hasFilters) {
+      constraints.push(orderBy(orderField, ascending ? "asc" : "desc"));
     }
-  });
 
-  // Apply text search
-  if (search && search.query) {
-    query = query.ilike(search.column, `%${search.query}%`);
+    // For pagination: fetch up to page * limit docs and slice
+    const fetchLimit = page * pageLimit;
+    constraints.push(limit(fetchLimit));
+
+    const q = query(collection(db, col), ...constraints);
+    const snapshot = await getDocs(q);
+
+    let docs = snapshot.docs.map((d) => docToRecord<T>(d.id, d.data()));
+
+    // Client-side sort when filters are present (avoids composite index)
+    if (hasFilters) {
+      docs.sort((a: any, b: any) => {
+        const aVal = a[orderField] ?? "";
+        const bVal = b[orderField] ?? "";
+        const cmp = aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+        return ascending ? cmp : -cmp;
+      });
+    }
+
+    // Client-side substring search (Firestore doesn't support ilike)
+    if (search?.query) {
+      const term = search.query.toLowerCase();
+      docs = docs.filter((item: any) => {
+        const val = item[search.column];
+        return typeof val === "string" && val.toLowerCase().includes(term);
+      });
+    }
+
+    // Slice for current page
+    const start = (page - 1) * pageLimit;
+    const pageData = docs.slice(start, start + pageLimit);
+
+    return { data: pageData, count: docs.length, error: null };
+  } catch (e: any) {
+    console.error(`fetchAll(${col}) error:`, e.message);
+    return { data: [], count: 0, error: e.message ?? "Fetch failed" };
   }
-
-  const { data, error, count } = await query;
-
-  return {
-    data: (data as T[]) || [],
-    count: count || 0,
-    error: formatError(error),
-  };
 }
 
 export async function fetchById<T>(
-  table: string,
+  col: string,
   id: string,
 ): Promise<ServiceResult<T>> {
-  const { data, error } = await supabase
-    .from(table)
-    .select("*")
-    .eq("id", id)
-    .maybeSingle();
-
-  return {
-    data: data as T | null,
-    error: formatError(error),
-  };
+  try {
+    const snap = await getDoc(doc(db, col, id));
+    if (!snap.exists()) return { data: null, error: null };
+    return { data: docToRecord<T>(snap.id, snap.data()), error: null };
+  } catch (e: any) {
+    return { data: null, error: e.message ?? "Fetch failed" };
+  }
 }
 
 export async function create<T>(
-  table: string,
+  col: string,
   record: Record<string, any>,
 ): Promise<ServiceResult<T>> {
-  const { data, error } = await supabase
-    .from(table)
-    .insert(record)
-    .select()
-    .maybeSingle();
+  try {
+    const now = new Date().toISOString();
+    // Strip undefined values — Firestore rejects them
+    const cleaned = Object.fromEntries(
+      Object.entries({ ...record, created_at: now, updated_at: now }).filter(
+        ([, v]) => v !== undefined,
+      ),
+    );
+    const { id: customId, ...rest } = cleaned;
 
-  return {
-    data: data as T | null,
-    error: formatError(error),
-  };
+    if (customId) {
+      // Use provided ID (e.g. Firebase Auth UID for profiles)
+      await setDoc(doc(db, col, customId), rest);
+      return { data: docToRecord<T>(customId, rest), error: null };
+    } else {
+      // Let Firestore auto-generate the document ID
+      const ref = await addDoc(collection(db, col), rest);
+      return { data: docToRecord<T>(ref.id, rest), error: null };
+    }
+  } catch (e: any) {
+    return { data: null, error: e.message ?? "Create failed" };
+  }
 }
 
 export async function update<T>(
-  table: string,
+  col: string,
   id: string,
   updates: Record<string, any>,
 ): Promise<ServiceResult<T>> {
-  const { data, error } = await supabase
-    .from(table)
-    .update(updates)
-    .eq("id", id)
-    .select()
-    .single();
-
-  return {
-    data: data as T | null,
-    error: formatError(error),
-  };
+  try {
+    const payload = { ...updates, updated_at: new Date().toISOString() };
+    await updateDoc(doc(db, col, id), payload);
+    const snap = await getDoc(doc(db, col, id));
+    return {
+      data: snap.exists() ? docToRecord<T>(snap.id, snap.data()) : null,
+      error: null,
+    };
+  } catch (e: any) {
+    return { data: null, error: e.message ?? "Update failed" };
+  }
 }
 
 export async function remove(
-  table: string,
+  col: string,
   id: string,
 ): Promise<{ error: string | null }> {
-  const { error } = await supabase.from(table).delete().eq("id", id);
-  return { error: formatError(error) };
+  try {
+    await deleteDoc(doc(db, col, id));
+    return { error: null };
+  } catch (e: any) {
+    return { error: e.message ?? "Delete failed" };
+  }
 }
 
-// Count records with optional filter
 export async function countRecords(
-  table: string,
+  col: string,
   filters: Record<string, any> = {},
 ): Promise<{ count: number; error: string | null }> {
-  let query = supabase.from(table).select("*", { count: "exact", head: true });
-
-  Object.entries(filters).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== "") {
-      query = query.eq(key, value);
-    }
-  });
-
-  const { count, error } = await query;
-  return { count: count || 0, error: formatError(error) };
+  try {
+    const constraints: QueryConstraint[] = [];
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        constraints.push(where(key, "==", value));
+      }
+    });
+    const q = query(collection(db, col), ...constraints);
+    const snap = await getCountFromServer(q);
+    return { count: snap.data().count, error: null };
+  } catch (e: any) {
+    return { count: 0, error: e.message ?? "Count failed" };
+  }
 }

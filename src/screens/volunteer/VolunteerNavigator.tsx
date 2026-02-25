@@ -7,6 +7,8 @@ import { COLORS } from "../../constants/theme";
 import { useAuth } from "../../stores/AuthProvider";
 import AssignedTasksScreen from "./AssignedTasksScreen";
 import VolunteerDashboardScreen from "./VolunteerDashboardScreen";
+/* Leaderboard tab imported from shared */
+import LeaderboardScreen from "../shared/LeaderboardScreen";
 
 const Tab = createBottomTabNavigator();
 
@@ -49,6 +51,15 @@ const VolunteerNavigator = () => {
         options={{
           tabBarIcon: ({ color, size }) => (
             <FontAwesome5 name="tasks" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Leaderboard"
+        component={LeaderboardScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <FontAwesome5 name="trophy" color={color} size={size} />
           ),
         }}
       />

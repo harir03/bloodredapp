@@ -3,23 +3,71 @@ import { Dimensions } from "react-native";
 const { width, height } = Dimensions.get("window");
 
 export const COLORS = {
+  // Brand
   primary: "#C1121F",
   primary_dim: "#7D0A12",
+  primary_glow: "rgba(193, 18, 31, 0.2)",
+  primary_subtle: "rgba(193, 18, 31, 0.08)",
+
+  // Surfaces
   background: "#0D0D0D",
   surface: "#1A1A1A",
   surface2: "#242424",
+  surface3: "#2E2E2E",
   border: "#2E2E2E",
-  text_primary: "#F5F5F5",
-  text_muted: "#888888",
-  success: "#2ECC71",
-  warning: "#F39C12",
-  danger: "#E74C3C",
-  info: "#3498DB",
-  accent: "#FF6B6B",
-  white: "#FFFFFF",
-  text_secondary: "#AAAAAA",
+  border_subtle: "#1F1F1F",
 
-  // Light theme colors (optional, for future use)
+  // Text
+  text_primary: "#F5F5F5",
+  text_secondary: "#AAAAAA",
+  text_muted: "#666666",
+  text_disabled: "#444444",
+
+  // Semantic
+  success: "#22C55E",
+  success_dim: "rgba(34, 197, 94, 0.15)",
+  warning: "#F59E0B",
+  warning_dim: "rgba(245, 158, 11, 0.15)",
+  danger: "#EF4444",
+  danger_dim: "rgba(239, 68, 68, 0.15)",
+  info: "#3B82F6",
+  info_dim: "rgba(59, 130, 246, 0.15)",
+  accent: "#FF6B6B",
+
+  // Status
+  critical: "#FF3B3B",
+  critical_dim: "rgba(255, 59, 59, 0.15)",
+  escalated: "#F97316",
+  escalated_dim: "rgba(249, 115, 22, 0.15)",
+
+  // Urgency
+  urgency_low: "#22C55E",
+  urgency_medium: "#F59E0B",
+  urgency_critical: "#EF4444",
+
+  // Blood groups
+  blood_a_pos: "#E53E3E",
+  blood_a_neg: "#C53030",
+  blood_b_pos: "#DD6B20",
+  blood_b_neg: "#C05621",
+  blood_ab_pos: "#805AD5",
+  blood_ab_neg: "#6B46C1",
+  blood_o_pos: "#3182CE",
+  blood_o_neg: "#2C5282",
+
+  // UI
+  white: "#FFFFFF",
+  black: "#000000",
+  overlay: "rgba(0, 0, 0, 0.7)",
+  overlay_light: "rgba(0, 0, 0, 0.4)",
+  shimmer_base: "#1E1E1E",
+  shimmer_highlight: "#2A2A2A",
+
+  // Gradient stops
+  gradient_start: "#C1121F",
+  gradient_end: "#7D0A12",
+
+  // Light theme (future)
   light_primary: "#C1121F",
   light_background: "#F5F5F5",
   light_surface: "#FFFFFF",
@@ -56,6 +104,7 @@ export const FONTS = {
   h3: { fontFamily: "Inter-SemiBold", fontSize: SIZES.h3, lineHeight: 22 },
   h4: { fontFamily: "Inter-Medium", fontSize: SIZES.h4, lineHeight: 20 },
   body: { fontFamily: "Inter-Regular", fontSize: SIZES.body, lineHeight: 22 },
+  body2: { fontFamily: "Inter-Regular", fontSize: 14, lineHeight: 20 },
   body3: { fontFamily: "Inter-Regular", fontSize: SIZES.body3, lineHeight: 18 },
   caption: {
     fontFamily: "Inter-Regular",
@@ -110,6 +159,16 @@ export const SHADOWS = {
   },
 };
 
-const appTheme = { COLORS, SIZES, FONTS, SPACING, SHADOWS };
+export const RADII = {
+  xs: 4,
+  s: 6,
+  m: 10,
+  l: 14,
+  xl: 20,
+  xxl: 28,
+  full: 999,
+};
+
+const appTheme = { COLORS, SIZES, FONTS, SPACING, SHADOWS, RADII };
 
 export default appTheme;

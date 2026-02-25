@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
     ActivityIndicator,
     FlatList,
@@ -11,15 +11,34 @@ import ListItem from "../../components/ui/ListItem";
 import SectionHeader from "../../components/ui/SectionHeader";
 import { COLORS, SPACING } from "../../constants/theme";
 import { useQuery } from "../../hooks/useQuery";
-import { taskService } from "../../services";
+import { taskService, volunteerService } from "../../services";
+import { useAuth } from "../../stores/AuthProvider";
 import { Task } from "../../types/database";
 
 const AssignedTasksScreen = ({ navigation }: any) => {
+  const { userEmail } = useAuth();
+  const [volunteerUUID, setVolunteerUUID] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (userEmail) {
+      volunteerService
+        .getByEmail(userEmail)
+        .then(({ data }) => setVolunteerUUID(data?.id ?? null))
+        .catch(() => {});
+    }
+  }, [userEmail]);
+
   const {
     data: tasks,
     loading,
     refresh,
-  } = useQuery<Task>(() => taskService.getAll({ limit: 100 }));
+  } = useQuery<Task>(
+    () =>
+      volunteerUUID
+        ? taskService.getByVolunteer(volunteerUUID, { limit: 100 })
+        : Promise.resolve({ data: [], count: 0, error: null }),
+    [volunteerUUID],
+  );
 
   const renderItem = useCallback(
     ({ item }: { item: Task }) => (

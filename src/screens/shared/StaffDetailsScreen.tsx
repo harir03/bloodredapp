@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
     padding: SPACING.m,
   },
   detailsContainer: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.surface,
     padding: SPACING.m,
     borderRadius: SPACING.s,
     marginBottom: SPACING.m,

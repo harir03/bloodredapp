@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
+    ActivityIndicator,
     Alert,
     KeyboardAvoidingView,
     Platform,
@@ -13,8 +14,9 @@ import AppButton from "../../components/ui/AppButton";
 import AppInput from "../../components/ui/AppInput";
 import SectionHeader from "../../components/ui/SectionHeader";
 import { COLORS, FONTS, SPACING } from "../../constants/theme";
-import { taskService } from "../../services";
+import { taskService, volunteerService } from "../../services";
 import { useAuth } from "../../stores/AuthProvider";
+import { Volunteer } from "../../types/database";
 
 const PRIORITY_OPTIONS = ["low", "medium", "high", "urgent"] as const;
 const TYPE_OPTIONS = [
@@ -27,7 +29,11 @@ const TYPE_OPTIONS = [
 
 const AddTaskScreen = ({ route, navigation }: any) => {
   const { userId } = useAuth();
-  const { assignedBy, assignedByName, assignedTo } = route?.params || {};
+  const {
+    assignedBy,
+    assignedByName,
+    assignedTo: preAssignedTo,
+  } = route?.params || {};
   const effectiveAssignedBy = assignedBy || userId;
 
   const [title, setTitle] = useState("");
@@ -40,9 +46,32 @@ const AddTaskScreen = ({ route, navigation }: any) => {
   const [dueDate, setDueDate] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Volunteer picker — used when no volunteer is pre-selected via route params
+  const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
+  const [volunteersLoading, setVolunteersLoading] = useState(false);
+  const [selectedVolunteerId, setSelectedVolunteerId] = useState<
+    string | undefined
+  >(preAssignedTo);
+
+  useEffect(() => {
+    // Only fetch if no volunteer was pre-selected
+    if (!preAssignedTo) {
+      setVolunteersLoading(true);
+      volunteerService
+        .getAll({ limit: 100, filters: { status: "active" } })
+        .then(({ data }) => setVolunteers(data))
+        .catch(() => {})
+        .finally(() => setVolunteersLoading(false));
+    }
+  }, [preAssignedTo]);
+
   const handleAddTask = async () => {
     if (!title.trim()) {
       Alert.alert("Error", "Task title is required");
+      return;
+    }
+    if (!selectedVolunteerId) {
+      Alert.alert("Error", "Please select a volunteer to assign this task to");
       return;
     }
     setLoading(true);
@@ -54,7 +83,7 @@ const AddTaskScreen = ({ route, navigation }: any) => {
         status: "assigned",
         priority,
         assigned_by: effectiveAssignedBy || undefined,
-        assigned_to: assignedTo ?? undefined,
+        assigned_to: selectedVolunteerId,
         location: location.trim() || undefined,
         city: city.trim() || undefined,
         due_date: dueDate.trim() || undefined,
@@ -82,14 +111,63 @@ const AddTaskScreen = ({ route, navigation }: any) => {
       <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
         <SectionHeader title="Add Task" />
 
-        {assignedByName ? (
+        {/* Show selected volunteer name if pre-assigned, or picker if not */}
+        {preAssignedTo && assignedByName ? (
           <View style={styles.assigneeBanner}>
             <Text style={styles.assigneeText}>
-              Assigning task on behalf of{" "}
+              Assigning task to{" "}
               <Text style={styles.assigneeName}>{assignedByName}</Text>
             </Text>
           </View>
-        ) : null}
+        ) : (
+          <View style={styles.volunteerSection}>
+            <Text style={styles.selectorLabel}>Assign To Volunteer *</Text>
+            {volunteersLoading ? (
+              <ActivityIndicator color={COLORS.primary} />
+            ) : volunteers.length === 0 ? (
+              <Text style={styles.noVolunteers}>
+                No active volunteers found
+              </Text>
+            ) : (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.volunteerScroll}
+              >
+                {volunteers.map((v) => (
+                  <TouchableOpacity
+                    key={v.id}
+                    onPress={() => setSelectedVolunteerId(v.id)}
+                    style={[
+                      styles.volunteerChip,
+                      selectedVolunteerId === v.id &&
+                        styles.volunteerChipActive,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.volunteerChipName,
+                        selectedVolunteerId === v.id &&
+                          styles.volunteerChipNameActive,
+                      ]}
+                    >
+                      {v.name}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.volunteerChipSub,
+                        selectedVolunteerId === v.id &&
+                          styles.volunteerChipSubActive,
+                      ]}
+                    >
+                      {v.blood_group} · {v.city}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            )}
+          </View>
+        )}
 
         <View style={styles.formContainer}>
           <AppInput
@@ -193,6 +271,48 @@ const styles = StyleSheet.create({
   assigneeName: {
     ...FONTS.h4,
     color: COLORS.white,
+  },
+  volunteerSection: {
+    marginBottom: SPACING.m,
+  },
+  volunteerScroll: {
+    flexDirection: "row",
+  },
+  volunteerChip: {
+    paddingHorizontal: SPACING.m,
+    paddingVertical: SPACING.s,
+    borderRadius: SPACING.s,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    marginRight: SPACING.s,
+    backgroundColor: COLORS.surface,
+    minWidth: 100,
+  },
+  volunteerChipActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  volunteerChipName: {
+    ...FONTS.body3,
+    color: COLORS.text_primary,
+  },
+  volunteerChipNameActive: {
+    color: COLORS.white,
+    fontWeight: "bold",
+  },
+  volunteerChipSub: {
+    ...FONTS.caption,
+    color: COLORS.text_muted,
+    marginTop: 2,
+  },
+  volunteerChipSubActive: {
+    color: COLORS.white,
+    opacity: 0.85,
+  },
+  noVolunteers: {
+    ...FONTS.body3,
+    color: COLORS.text_muted,
+    fontStyle: "italic",
   },
   formContainer: {
     backgroundColor: COLORS.surface,

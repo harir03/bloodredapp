@@ -27,7 +27,18 @@ import StaffDetailsScreen from "../screens/shared/StaffDetailsScreen";
 import TaskDetailsScreen from "../screens/shared/TaskDetailsScreen";
 import UserDetailsScreen from "../screens/shared/UserDetailsScreen";
 import VolunteerDetailsScreen from "../screens/shared/VolunteerDetailsScreen";
-
+// New shared screens
+import AddBloodRequestScreen from "../screens/shared/AddBloodRequestScreen";
+import AddEventScreen from "../screens/shared/AddEventScreen";
+import AssignVolunteerScreen from "../screens/shared/AssignVolunteerScreen";
+import BloodRequestDetailsScreen from "../screens/shared/BloodRequestDetailsScreen";
+import EventsScreen from "../screens/shared/EventsScreen";
+import LeaderboardScreen from "../screens/shared/LeaderboardScreen";
+import ManageBloodRequestsScreen from "../screens/shared/ManageBloodRequestsScreen";
+import ManageDonorsScreen from "../screens/shared/ManageDonorsScreen";
+import NotificationsScreen from "../screens/shared/NotificationsScreen";
+import ProfileScreen from "../screens/shared/ProfileScreen";
+import ReportsScreen from "../screens/shared/ReportsScreen";
 
 const Stack = createStackNavigator();
 
@@ -76,6 +87,25 @@ const AppStack = () => {
       <Stack.Screen name="AddCall" component={AddCallScreen} />
       <Stack.Screen name="TaskDetails" component={TaskDetailsScreen} />
       <Stack.Screen name="AddTask" component={AddTaskScreen} />
+      {/* Blood Request screens */}
+      <Stack.Screen
+        name="ManageBloodRequests"
+        component={ManageBloodRequestsScreen}
+      />
+      <Stack.Screen
+        name="BloodRequestDetails"
+        component={BloodRequestDetailsScreen}
+      />
+      <Stack.Screen name="AddBloodRequest" component={AddBloodRequestScreen} />
+      <Stack.Screen name="AssignVolunteer" component={AssignVolunteerScreen} />
+      <Stack.Screen name="ManageDonors" component={ManageDonorsScreen} />
+      {/* Utility screens */}
+      <Stack.Screen name="Notifications" component={NotificationsScreen} />
+      <Stack.Screen name="Leaderboard" component={LeaderboardScreen} />
+      <Stack.Screen name="Profile" component={ProfileScreen} />
+      <Stack.Screen name="Events" component={EventsScreen} />
+      <Stack.Screen name="AddEvent" component={AddEventScreen} />
+      <Stack.Screen name="Reports" component={ReportsScreen} />
     </Stack.Navigator>
   );
 };

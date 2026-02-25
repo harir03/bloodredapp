@@ -5,6 +5,7 @@ import { TouchableOpacity } from "react-native";
 import TabBar from "../../components/ui/TabBar";
 import { COLORS } from "../../constants/theme";
 import { useAuth } from "../../stores/AuthProvider";
+import ManageBloodRequestsScreen from "../shared/ManageBloodRequestsScreen";
 import HelplineDashboardScreen from "./HelplineDashboardScreen";
 import ManageCallsScreen from "./ManageCallsScreen";
 
@@ -49,6 +50,16 @@ const HelplineNavigator = () => {
         options={{
           tabBarIcon: ({ color, size }) => (
             <FontAwesome5 name="phone-alt" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="BloodRequests"
+        component={ManageBloodRequestsScreen}
+        options={{
+          title: "Requests",
+          tabBarIcon: ({ color, size }) => (
+            <FontAwesome5 name="tint" color={color} size={size} />
           ),
         }}
       />

@@ -55,6 +55,15 @@ const VolunteerDetailsScreen = ({ route, navigation }: any) => {
         <Text style={styles.label}>Points:</Text>
         <Text style={styles.value}>{volunteer.points}</Text>
       </View>
+      <AppButton
+        title="Assign Task"
+        onPress={() =>
+          navigation.navigate("AddTask", {
+            assignedTo: volunteer.id,
+            assignedByName: volunteer.name,
+          })
+        }
+      />
       <AppButton title="Go Back" onPress={() => navigation.goBack()} />
     </View>
   );
@@ -67,7 +76,7 @@ const styles = StyleSheet.create({
     padding: SPACING.m,
   },
   detailsContainer: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.surface,
     padding: SPACING.m,
     borderRadius: SPACING.s,
     marginBottom: SPACING.m,

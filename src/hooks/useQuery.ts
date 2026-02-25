@@ -9,7 +9,7 @@ interface UseQueryResult<T> {
 }
 
 /**
- * Generic hook for fetching data from Supabase services.
+ * Generic hook for fetching data from Firestore services.
  * @param fetchFn - Async function that returns { data, count, error }
  * @param deps - Dependency array to trigger re-fetch
  */
@@ -51,7 +51,7 @@ interface UseCountResult {
 }
 
 /**
- * Hook for fetching a count from Supabase.
+ * Hook for fetching a count from Firestore.
  */
 export function useCount(
   countFn: () => Promise<{ count: number; error: string | null }>,

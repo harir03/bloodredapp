@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
     createUserWithEmailAndPassword,
     onAuthStateChanged,
@@ -6,10 +7,13 @@ import {
     updateProfile,
     User,
 } from "firebase/auth";
+import { addDoc, collection, doc, getDoc, setDoc } from "firebase/firestore";
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { firebaseAuth } from "../config/firebase";
-import { supabase } from "../config/supabase";
+import { db, firebaseAuth } from "../config/firebase";
 import type { Profile, UserRole } from "../types/database";
+
+// Cache key for persisting profile data locally
+const profileCacheKey = (uid: string) => `@profile_cache_${uid}`;
 
 export type { UserRole };
 
@@ -70,23 +74,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     return unsubscribe;
   }, []);
 
-  // Fetch user profile from Supabase
+  // Fetch user profile from Firestore with local cache fallback
   const fetchProfile = async (uid: string) => {
     try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", uid)
-        .maybeSingle();
-
-      if (error) {
-        console.warn("Profile fetch error:", error.message);
+      const snap = await getDoc(doc(db, "profiles", uid));
+      if (snap.exists()) {
+        const data = { id: snap.id, ...snap.data() } as Profile;
+        // Persist to local cache
+        AsyncStorage.setItem(profileCacheKey(uid), JSON.stringify(data)).catch(
+          () => {},
+        );
+        setProfile(data);
+      } else {
         setProfile(null);
-        return;
       }
-      setProfile(data as Profile | null);
-    } catch (e) {
-      console.error("Profile fetch exception:", e);
+    } catch (e: any) {
+      console.warn("Profile fetch error — loading from cache:", e.message);
+      try {
+        const cached = await AsyncStorage.getItem(profileCacheKey(uid));
+        if (cached) {
+          setProfile(JSON.parse(cached) as Profile);
+          return;
+        }
+      } catch (_) {}
       setProfile(null);
     }
   };
@@ -116,7 +126,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  // Firebase email/password registration + Supabase profile creation
+  // Firebase email/password registration + Firestore profile + volunteer creation
   const register = async (
     email: string,
     password: string,
@@ -134,20 +144,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         // Update Firebase display name
         await updateProfile(credential.user, { displayName: name });
 
-        // Create profile in Supabase
-        const { error } = await supabase.from("profiles").insert({
-          id: credential.user.uid,
+        const now = new Date().toISOString();
+
+        // Create profile document in Firestore
+        const profileData = {
           email: email.toLowerCase(),
           name,
           role,
           blood_group: bloodGroup || null,
           is_active: true,
-        });
+          created_at: now,
+          updated_at: now,
+        };
+        await setDoc(
+          doc(db, "profiles", credential.user.uid),
+          profileData,
+        ).catch((e) => console.error("Profile creation error:", e.message));
 
-        if (error) {
-          console.error("Profile creation error:", error.message);
-          // Still return true — Firebase account was created
-        }
+        // Auto-create a volunteer record for every registered user
+        const volunteerData: Record<string, any> = {
+          profile_id: credential.user.uid,
+          name,
+          email: email.toLowerCase(),
+          phone: "",
+          blood_group: bloodGroup || "",
+          area: "",
+          city: "",
+          status: "active",
+          tasks_completed: 0,
+          points: 0,
+          joined_at: now,
+          created_at: now,
+          updated_at: now,
+        };
+        await addDoc(collection(db, "volunteers"), volunteerData).catch((e) =>
+          console.error("Volunteer creation error:", e.message),
+        );
 
         await fetchProfile(credential.user.uid);
         return true;
@@ -161,6 +193,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const logout = async () => {
     try {
+      // Clear cached profile on explicit logout
+      if (firebaseUser) {
+        await AsyncStorage.removeItem(profileCacheKey(firebaseUser.uid)).catch(
+          () => {},
+        );
+      }
       await signOut(firebaseAuth);
       setProfile(null);
     } catch (error: any) {

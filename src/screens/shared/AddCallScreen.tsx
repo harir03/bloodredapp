@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     padding: SPACING.m,
   },
   formContainer: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.surface,
     padding: SPACING.m,
     borderRadius: SPACING.s,
   },
