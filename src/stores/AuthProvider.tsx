@@ -1,13 +1,13 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
-    createUserWithEmailAndPassword,
-    onAuthStateChanged,
-    signInWithEmailAndPassword,
-    signOut,
-    updateProfile,
-    User,
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut,
+  updateProfile,
+  User,
 } from "firebase/auth";
-import { addDoc, collection, doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { db, firebaseAuth } from "../config/firebase";
 import type { Profile, UserRole } from "../types/database";
@@ -47,8 +47,8 @@ const AuthContext = createContext<AuthContextType>({
   profile: null,
   login: async () => false,
   register: async () => false,
-  logout: async () => {},
-  refreshProfile: async () => {},
+  logout: async () => { },
+  refreshProfile: async () => { },
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -82,7 +82,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         const data = { id: snap.id, ...snap.data() } as Profile;
         // Persist to local cache
         AsyncStorage.setItem(profileCacheKey(uid), JSON.stringify(data)).catch(
-          () => {},
+          () => { },
         );
         setProfile(data);
       } else {
@@ -96,7 +96,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           setProfile(JSON.parse(cached) as Profile);
           return;
         }
-      } catch (_) {}
+      } catch (_) { }
       setProfile(null);
     }
   };
@@ -153,6 +153,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           role,
           blood_group: bloodGroup || null,
           is_active: true,
+          points: 0,
+          badges: ["new_recruit"],
           created_at: now,
           updated_at: now,
         };
@@ -161,7 +163,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           profileData,
         ).catch((e) => console.error("Profile creation error:", e.message));
 
-        // Auto-create a volunteer record for every registered user
+        // Create a volunteer record using the SAME UID as the document ID
         const volunteerData: Record<string, any> = {
           profile_id: credential.user.uid,
           name,
@@ -173,11 +175,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           status: "active",
           tasks_completed: 0,
           points: 0,
+          badges: ["new_recruit"],
           joined_at: now,
           created_at: now,
           updated_at: now,
         };
-        await addDoc(collection(db, "volunteers"), volunteerData).catch((e) =>
+        await setDoc(
+          doc(db, "volunteers", credential.user.uid),
+          volunteerData
+        ).catch((e) =>
           console.error("Volunteer creation error:", e.message),
         );
 
@@ -196,7 +202,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       // Clear cached profile on explicit logout
       if (firebaseUser) {
         await AsyncStorage.removeItem(profileCacheKey(firebaseUser.uid)).catch(
-          () => {},
+          () => { },
         );
       }
       await signOut(firebaseAuth);

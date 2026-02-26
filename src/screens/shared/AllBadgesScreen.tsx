@@ -1,17 +1,38 @@
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React, { useEffect } from "react";
+import { ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { BadgeItem } from "../../components/ui/BadgeItem";
 import { COLORS, FONTS, SPACING } from "../../constants/theme";
-import { BADGES, computeBadges } from "../../services/leaderboardService";
+import { BADGES, computeBadges, leaderboardService } from "../../services/leaderboardService";
 import { useAuth } from "../../stores/AuthProvider";
 
 export default function AllBadgesScreen({ navigation }: any) {
-    const { profile } = useAuth();
+    const { profile, userId, refreshProfile } = useAuth();
     const points = (profile as any)?.points || 0;
     const earnedBadges = (profile as any)?.badges || computeBadges(points);
 
+    // Auto-reconcile stats on mount to fix potential 0-points issues
+    useEffect(() => {
+        if (userId) {
+            leaderboardService.reconcileProfileStats(userId).then(() => {
+                refreshProfile();
+            });
+        }
+    }, [userId]);
+
     const badgeList = Object.entries(BADGES).sort((a, b) => a[1].minPoints - b[1].minPoints);
+
+    const handleShareCollection = async () => {
+        try {
+            const message = `I've unlocked ${earnedBadges.length} out of ${badgeList.length} badges on BloodConnect Collection! 🏆🩸 Join our mission to help those in need! #BloodConnect #Awards #Volunteer`;
+            await Share.share({
+                message,
+                title: "My Badge Collection",
+            });
+        } catch (error: any) {
+            // Already handled by Share API
+        }
+    };
 
     return (
         <View style={styles.container}>
@@ -23,10 +44,16 @@ export default function AllBadgesScreen({ navigation }: any) {
                 >
                     <Ionicons name="arrow-back" size={22} color={COLORS.text_primary} />
                 </TouchableOpacity>
-                <View>
+                <View style={{ flex: 1 }}>
                     <Text style={styles.title}>Badge Collection</Text>
                     <Text style={styles.subtitle}>{earnedBadges.length} of {badgeList.length} unlocked</Text>
                 </View>
+                <TouchableOpacity
+                    onPress={handleShareCollection}
+                    style={styles.backBtn}
+                >
+                    <Ionicons name="share-social-outline" size={20} color={COLORS.primary} />
+                </TouchableOpacity>
             </View>
 
             <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>

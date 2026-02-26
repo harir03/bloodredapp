@@ -13,7 +13,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { BloodRequest, ResponseLogEntry } from "../types/database";
-import { taskService } from "./taskService";
+import { sanitizeFirestoreData } from "./baseService";
 
 const COL = "bloodRequests";
 
@@ -124,11 +124,29 @@ export const bloodRequestService = {
     const snap = await getDoc(ref);
     const existing = snap.data();
     const responseLog: ResponseLogEntry[] = existing?.responseLog ?? [];
-    await updateDoc(ref, {
+    await updateDoc(ref, sanitizeFirestoreData({
       status,
       ...(extra ?? {}),
       responseLog: [...responseLog, logEntry],
-    });
+    }));
+
+    // Sync with linked tasks — use require to avoid circular dependency
+    try {
+      console.log(`[Sync] Attempting task sync for Request: ${id}, Status: ${status}`);
+      const { taskService } = require("./taskService");
+      if (status === "completed") {
+        await taskService.updateByRequestId(id, {
+          status: "completed",
+          completedAt: new Date().toISOString(),
+        });
+      } else if (status === "cancelled") {
+        await taskService.updateByRequestId(id, {
+          status: "cancelled",
+        });
+      }
+    } catch (e) {
+      console.error("[Sync] Failed to sync task status with blood request:", e);
+    }
   },
 
   async assignVolunteer(
@@ -158,6 +176,7 @@ export const bloodRequestService = {
 
     // Create a corresponding task for the volunteer
     try {
+      const { taskService } = require("./taskService");
       await taskService.create({
         title: `Blood Donation: ${data?.patientName || 'Request'}`,
         description: `Assist with blood donation at ${data?.hospital || 'Hospital'} in ${data?.city || 'City'}.`,
@@ -167,6 +186,7 @@ export const bloodRequestService = {
         status: "pending",
         priority: data?.urgency === "critical" ? "high" : "medium",
         requestId: id,
+        request_id: id, // legacy support
         city: data?.city,
         type: "blood_donation",
         points_reward: 50,

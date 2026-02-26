@@ -205,13 +205,14 @@ export interface Task {
   assignedBy: string;
   assignedByName?: string;
   eventId?: string;
-  status: "pending" | "in_progress" | "completed" | "overdue";
+  status: "pending" | "in_progress" | "completed" | "overdue" | "cancelled";
   dueDate?: string;
   completedAt?: string;
   createdAt: string;
   priority: "low" | "medium" | "high";
   points_reward?: number;
   requestId?: string;
+  request_id?: string; // legacy
   city?: string;
   location?: string;
   type?: "blood_donation" | "food_delivery" | "medical" | "logistics" | "other" | string;

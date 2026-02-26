@@ -1,19 +1,19 @@
 // Generic Firestore CRUD service
 import {
-    addDoc,
-    collection,
-    deleteDoc,
-    doc,
-    getCountFromServer,
-    getDoc,
-    getDocs,
-    limit,
-    orderBy,
-    query,
-    QueryConstraint,
-    setDoc,
-    updateDoc,
-    where,
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getCountFromServer,
+  getDoc,
+  getDocs,
+  limit,
+  orderBy,
+  query,
+  QueryConstraint,
+  setDoc,
+  updateDoc,
+  where,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
 
@@ -39,6 +39,28 @@ export interface QueryOptions {
 
 function docToRecord<T>(id: string, data: Record<string, any>): T {
   return { id, ...data } as T;
+}
+
+/**
+ * Recursively removes all 'undefined' values from an object/array.
+ * Firestore rejects undefined but usually accepts null.
+ */
+export function sanitizeFirestoreData(data: any): any {
+  if (data === undefined) return null; // Convert undefined to null at root
+  if (data === null || typeof data !== "object") return data;
+
+  if (Array.isArray(data)) {
+    return data.map(v => sanitizeFirestoreData(v)).filter(v => v !== undefined);
+  }
+
+  const clean: any = {};
+  Object.keys(data).forEach(key => {
+    const value = data[key];
+    if (value !== undefined) {
+      clean[key] = sanitizeFirestoreData(value);
+    }
+  });
+  return clean;
 }
 
 export async function fetchAll<T>(
@@ -132,12 +154,8 @@ export async function create<T>(
 ): Promise<ServiceResult<T>> {
   try {
     const now = new Date().toISOString();
-    // Strip undefined values — Firestore rejects them
-    const cleaned = Object.fromEntries(
-      Object.entries({ ...record, created_at: now, updated_at: now }).filter(
-        ([, v]) => v !== undefined,
-      ),
-    );
+    // Use recursive sanitization
+    const cleaned = sanitizeFirestoreData({ ...record, created_at: now, updated_at: now });
     const { id: customId, ...rest } = cleaned;
 
     if (customId) {
@@ -160,7 +178,9 @@ export async function update<T>(
   updates: Record<string, any>,
 ): Promise<ServiceResult<T>> {
   try {
-    const payload = { ...updates, updated_at: new Date().toISOString() };
+    const now = new Date().toISOString();
+    // Use recursive sanitization
+    const payload = sanitizeFirestoreData({ ...updates, updated_at: now });
     await updateDoc(doc(db, col, id), payload);
     const snap = await getDoc(doc(db, col, id));
     return {

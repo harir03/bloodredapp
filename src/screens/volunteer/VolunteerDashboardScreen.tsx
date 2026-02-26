@@ -49,11 +49,18 @@ export default function VolunteerDashboardScreen({ navigation }: any) {
       setVolunteer(vol ?? null);
 
       if (vol) {
-        const { data: myTasks } = await taskService.getAll({
+        // Robust task fetching: check both potential assignment fields
+        const { data: camel } = await taskService.getAll({
+          filters: { assignedTo: vol.id },
+        } as any);
+        const { data: snake } = await taskService.getAll({
           filters: { assigned_to: vol.id },
         } as any);
+        const combined = [...camel];
+        snake.forEach(s => { if (!combined.find(c => c.id === s.id)) combined.push(s); });
+
         setTasks(
-          (myTasks || []).filter((t: Task) => t.status !== "completed").slice(0, 5),
+          combined.filter((t: Task) => t.status !== "completed").slice(0, 5),
         );
       }
     } catch (e) {

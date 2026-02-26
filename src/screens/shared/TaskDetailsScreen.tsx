@@ -83,15 +83,14 @@ const TaskDetailsScreen = ({ route, navigation }: any) => {
   const [actionLoading, setActionLoading] = useState(false);
   const { userRole, profile } = useAuth();
 
-  const load = () => {
+  useEffect(() => {
     setLoading(true);
-    taskService
-      .getById(taskId)
-      .then(({ data }) => {
-        setTask(data);
-        // Resolve assignee name
-        const toName = data?.assignedToName;
-        const toId = data?.assignedTo ?? data?.assigned_to;
+    const unsub = taskService.subscribeToTaskById(taskId, (data) => {
+      setTask(data);
+      if (data) {
+        // Resolve names only once or when data changes
+        const toName = data.assignedToName;
+        const toId = data.assignedTo || data.assigned_to;
         if (toName) {
           setVolunteerName(toName);
         } else if (toId) {
@@ -100,15 +99,11 @@ const TaskDetailsScreen = ({ route, navigation }: any) => {
             .then(({ data: v }) => setVolunteerName(v?.name ?? null))
             .catch(() => { });
         }
-        // Assigner name
-        if (data?.assignedByName) setAssignerName(data.assignedByName);
-      })
-      .catch(() => { })
-      .finally(() => setLoading(false));
-  };
-
-  useEffect(() => {
-    load();
+        if (data.assignedByName) setAssignerName(data.assignedByName);
+      }
+      setLoading(false);
+    });
+    return unsub;
   }, [taskId]);
 
   const handleAccept = async () => {
@@ -119,7 +114,6 @@ const TaskDetailsScreen = ({ route, navigation }: any) => {
         Alert.alert("Error", error);
       } else {
         Alert.alert("Success", "You have accepted the task.");
-        load();
       }
     } finally {
       setActionLoading(false);
@@ -155,7 +149,6 @@ const TaskDetailsScreen = ({ route, navigation }: any) => {
                 Alert.alert("Error", error);
               } else {
                 Alert.alert("Success", "Task marked as completed and points awarded.");
-                load();
               }
             } finally {
               setActionLoading(false);

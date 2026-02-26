@@ -3,6 +3,7 @@ import React, { useCallback, useState } from "react";
 import {
   Alert,
   ScrollView,
+  Share,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -58,6 +59,25 @@ export default function ProfileScreen({ navigation }: any) {
     ]);
   }, [logout]);
 
+  const handleShareProfile = async () => {
+    try {
+      const stats = {
+        points: (profile as any)?.points || 0,
+        tasks: (profile as any)?.tasks_completed || 0,
+        badges: (profile as any)?.badges?.length || computeBadges((profile as any)?.points || 0).length,
+      };
+
+      const message = `I'm a proud BloodConnect Volunteer! 🩸\n\nImpact Stats:\n✨ ${stats.points} Points Earned\n✅ ${stats.tasks} Tasks Completed\n🏆 ${stats.badges} Badges Unlocked\n\nJoin me in saving lives! Download BloodConnect today. #BloodConnect #Volunteer #Impact`;
+
+      await Share.share({
+        message,
+        title: "My BloodConnect Impact",
+      });
+    } catch (error: any) {
+      Alert.alert("Sharing Error", error.message);
+    }
+  };
+
   const roleLabel: Record<string, string> = {
     admin: "Administrator",
     volunteer: "Volunteer",
@@ -86,7 +106,12 @@ export default function ProfileScreen({ navigation }: any) {
           <Ionicons name="arrow-back" size={22} color={COLORS.text_primary} />
         </TouchableOpacity>
         <Text style={styles.title}>Profile</Text>
-        <View style={{ width: 36 }} />
+        <TouchableOpacity
+          onPress={handleShareProfile}
+          style={styles.backBtn}
+        >
+          <Ionicons name="share-social-outline" size={20} color={COLORS.primary} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView

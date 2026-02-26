@@ -9,6 +9,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { CityLeaderboard, LeaderboardEntry } from "../types/database";
+import { sanitizeFirestoreData } from "./baseService";
 import { notificationService } from "./notificationService";
 
 const COL = "leaderboard";
@@ -102,11 +103,11 @@ export const leaderboardService = {
     entries.sort((a, b) => b.points - a.points);
     entries = entries.slice(0, 50).map((e, i) => ({ ...e, rank: i + 1 }));
 
-    await setDoc(ref, {
+    await setDoc(ref, sanitizeFirestoreData({
       id: city,
       topVolunteers: entries,
       updatedAt: new Date().toISOString(),
-    });
+    }));
   },
 
   async addPoints(
@@ -157,20 +158,41 @@ export const leaderboardService = {
     entries.sort((a, b) => b.points - a.points);
     entries = entries.slice(0, 50).map((e, i) => ({ ...e, rank: i + 1 }));
 
-    await setDoc(cityRef, {
+    await setDoc(cityRef, sanitizeFirestoreData({
       id: city,
       topVolunteers: entries,
       updatedAt: new Date().toISOString(),
-    });
+    }));
 
-    // 3. Update volunteer doc points & badges
+    // 3. Update volunteer doc AND profile doc
     try {
-      await updateDoc(doc(db, "volunteers", volunteerId), {
+      // Standardize: volunteerId is likely the Auth UID now
+      const volRef = doc(db, "volunteers", volunteerId);
+      const profRef = doc(db, "profiles", volunteerId);
+
+      // Recursive sanitization for safety
+      const updates = sanitizeFirestoreData({
         points: increment(pointsToAdd),
         badges: newBadges,
+        updated_at: new Date().toISOString(),
       });
-    } catch {
-      // volunteer doc might not exist by volunteer id directly
+
+      await updateDoc(volRef, updates).catch(async () => {
+        // Fallback: If UID isn't the doc ID, find by profile_id
+        const { query, where, getDocs, collection } = require("firebase/firestore");
+        const q = query(collection(db, "volunteers"), where("profile_id", "==", volunteerId));
+        const qSnap = await getDocs(q);
+        if (!qSnap.empty) {
+          await updateDoc(doc(db, "volunteers", qSnap.docs[0].id), updates);
+        }
+      });
+
+      // Mirror to profiles for UI performance (AllBadgesScreen, ProfileScreen)
+      await updateDoc(profRef, updates).catch(() => {
+        console.log("Profile doc not found for points mirror");
+      });
+    } catch (e) {
+      console.error("Critical error in points sync:", e);
     }
 
     // 4. Send notifications for new badges
@@ -184,5 +206,46 @@ export const leaderboardService = {
       });
     }
   },
+
+  /**
+   * Reconciles point/badge data from the 'volunteers' collection to the 'profiles' collection.
+   * Useful for fixing legacy data or sync issues.
+   */
+  async reconcileProfileStats(uid: string): Promise<void> {
+    try {
+      console.log(`[Reconcile] Starting stats sync for ${uid}`);
+      let points = 0;
+      let badges: string[] = ["new_recruit"];
+
+      // 1. Try finding by direct ID
+      const volSnap = await getDoc(doc(db, "volunteers", uid));
+      if (volSnap.exists()) {
+        const data = volSnap.data();
+        points = data.points || 0;
+        badges = data.badges || computeBadges(points);
+      } else {
+        // 2. Try finding by profile_id query
+        const { query, where, getDocs, collection } = require("firebase/firestore");
+        const q = query(collection(db, "volunteers"), where("profile_id", "==", uid));
+        const qSnap = await getDocs(q);
+        if (!qSnap.empty) {
+          const data = qSnap.docs[0].data();
+          points = data.points || 0;
+          badges = data.badges || computeBadges(points);
+        }
+      }
+
+      // 3. Update profile
+      const profRef = doc(db, "profiles", uid);
+      await updateDoc(profRef, sanitizeFirestoreData({
+        points,
+        badges,
+        updated_at: new Date().toISOString()
+      }));
+      console.log(`[Reconcile] Successfully synced: ${points}pts, ${badges.length} badges`);
+    } catch (e: any) {
+      console.error("[Reconcile] Failed to reconcile stats:", e.message);
+    }
+  }
 };
 
