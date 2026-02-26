@@ -1,26 +1,58 @@
 import {
-    collection,
-    doc,
-    getDoc,
-    getDocs,
-    increment,
-    setDoc,
-    updateDoc
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  increment,
+  setDoc,
+  updateDoc
 } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { CityLeaderboard, LeaderboardEntry } from "../types/database";
+import { notificationService } from "./notificationService";
 
 const COL = "leaderboard";
 
 export const BADGES: Record<
   string,
-  { label: string; minPoints: number; emoji: string }
+  { label: string; minPoints: number; emoji: string; description: string }
 > = {
-  first_blood: { label: "First Blood", minPoints: 0, emoji: "🩸" },
-  rising_star: { label: "Rising Star", minPoints: 100, emoji: "⭐" },
-  dedicated: { label: "Dedicated", minPoints: 300, emoji: "💪" },
-  hero: { label: "Hero", minPoints: 600, emoji: "🦸" },
-  legend: { label: "Legend", minPoints: 1000, emoji: "🏆" },
+  new_recruit: {
+    label: "New Recruit",
+    minPoints: 0,
+    emoji: "🔰",
+    description: "Welcome to the team! Awarded for joining the community."
+  },
+  first_blood: {
+    label: "First Blood",
+    minPoints: 50,
+    emoji: "🩸",
+    description: "Your first impact! Awarded for donating blood or resolving a request."
+  },
+  rising_star: {
+    label: "Rising Star",
+    minPoints: 100,
+    emoji: "⭐",
+    description: "Off to a great start! Earned 100 points."
+  },
+  dedicated: {
+    label: "Dedicated",
+    minPoints: 300,
+    emoji: "💪",
+    description: "A true pillar of the community. Earned 300 points."
+  },
+  hero: {
+    label: "Hero",
+    minPoints: 600,
+    emoji: "🦸",
+    description: "Going above and beyond. Earned 600 points."
+  },
+  legend: {
+    label: "Legend",
+    minPoints: 1000,
+    emoji: "🏆",
+    description: "The stuff of legends. Earned 1000 points."
+  },
 };
 
 export const POINTS = {
@@ -33,6 +65,7 @@ export const POINTS = {
 
 export function computeBadges(points: number): string[] {
   return Object.entries(BADGES)
+    .sort((a, b) => a[1].minPoints - b[1].minPoints) // Ensure correct order
     .filter(([, v]) => points >= v.minPoints)
     .map(([k]) => k);
 }
@@ -83,7 +116,23 @@ export const leaderboardService = {
     volunteerName: string,
     avatarUrl?: string,
   ): Promise<void> {
-    // Update leaderboard city doc
+    // 1. Get current data to check for new badges
+    let currentPoints = 0;
+    try {
+      const volSnap = await getDoc(doc(db, "volunteers", volunteerId));
+      if (volSnap.exists()) {
+        currentPoints = volSnap.data().points || 0;
+      }
+    } catch (e) {
+      console.log("Error fetching volunteer for points check:", e);
+    }
+
+    const newPoints = currentPoints + pointsToAdd;
+    const oldBadges = computeBadges(currentPoints);
+    const newBadges = computeBadges(newPoints);
+    const earnedNow = newBadges.filter(b => !oldBadges.includes(b));
+
+    // 2. Update leaderboard city doc
     const cityRef = doc(db, COL, city);
     const snap = await getDoc(cityRef);
     let entries: LeaderboardEntry[] = snap.exists()
@@ -93,13 +142,15 @@ export const leaderboardService = {
     const idx = entries.findIndex((e) => e.userId === volunteerId);
     if (idx >= 0) {
       entries[idx].points += pointsToAdd;
+      entries[idx].badgeCount = newBadges.length;
     } else {
       entries.push({
         userId: volunteerId,
         name: volunteerName,
-        points: pointsToAdd,
+        points: newPoints,
         rank: 0,
         avatarUrl,
+        badgeCount: newBadges.length,
       });
     }
 
@@ -112,13 +163,26 @@ export const leaderboardService = {
       updatedAt: new Date().toISOString(),
     });
 
-    // Also update volunteer doc points
+    // 3. Update volunteer doc points & badges
     try {
       await updateDoc(doc(db, "volunteers", volunteerId), {
         points: increment(pointsToAdd),
+        badges: newBadges,
       });
     } catch {
       // volunteer doc might not exist by volunteer id directly
     }
+
+    // 4. Send notifications for new badges
+    for (const badgeKey of earnedNow) {
+      const badge = BADGES[badgeKey];
+      await notificationService.send({
+        userId: volunteerId,
+        title: "New Badge Earned! 🏆",
+        body: `Congratulations! You've earned the ${badge.label} badge: ${badge.description}`,
+        type: "badge_earned",
+      });
+    }
   },
 };
+

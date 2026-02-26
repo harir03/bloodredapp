@@ -1,15 +1,16 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback, useState } from "react";
 import {
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { BloodGroupBadge } from "../../components/ui/BloodGroupBadge";
 import { COLORS, FONTS, RADII, SPACING } from "../../constants/theme";
+import { BADGES, computeBadges } from "../../services/leaderboardService";
 import { useAuth } from "../../stores/AuthProvider";
 import type { BloodGroup } from "../../types/database";
 
@@ -67,11 +68,11 @@ export default function ProfileScreen({ navigation }: any) {
 
   const initials = userName
     ? userName
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2)
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2)
     : "?";
 
   return (
@@ -149,15 +150,43 @@ export default function ProfileScreen({ navigation }: any) {
                 <Text style={styles.statLabel}>Points</Text>
               </View>
               <View style={styles.statDivider} />
-              <View style={styles.statItem}>
+              <TouchableOpacity
+                style={styles.statItem}
+                onPress={() => navigation.navigate("AllBadges")}
+              >
                 <Text style={styles.statValue}>
-                  {(profile as any)?.badges?.length ?? 0}
+                  {(profile as any)?.badges?.length || computeBadges((profile as any)?.points || 0).length}
                 </Text>
                 <Text style={styles.statLabel}>Badges</Text>
-              </View>
+              </TouchableOpacity>
             </View>
           </View>
         )}
+
+        {/* Badges Section */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardTitle}>Recent Badges</Text>
+            <TouchableOpacity onPress={() => navigation.navigate("AllBadges")}>
+              <Text style={styles.viewAllText}>View All</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.badgeRow}>
+            {((profile as any)?.badges || computeBadges((profile as any)?.points || 0)).slice(0, 4).map((b: string) => {
+              const info = BADGES[b];
+              if (!info) return null;
+              return (
+                <View key={b} style={styles.badgeIconWrap}>
+                  <Text style={styles.badgeEmoji}>{info.emoji}</Text>
+                  <Text style={styles.badgeLabel} numberOfLines={1}>{info.label}</Text>
+                </View>
+              );
+            })}
+            {((profile as any)?.badges || computeBadges((profile as any)?.points || 0)).length === 0 && (
+              <Text style={styles.emptyBadges}>No badges earned yet. Keep helping to unlock them!</Text>
+            )}
+          </View>
+        </View>
 
         {/* Logout */}
         <TouchableOpacity
@@ -262,6 +291,45 @@ const styles = StyleSheet.create({
   statValue: { ...FONTS.h2, color: COLORS.primary },
   statLabel: { ...FONTS.caption, color: COLORS.text_muted, marginTop: 4 },
   statDivider: { width: 1, backgroundColor: COLORS.border, height: "100%" },
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: SPACING.m,
+  },
+  viewAllText: {
+    ...FONTS.caption,
+    color: COLORS.primary,
+    fontWeight: "600",
+  },
+  badgeRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+  },
+  badgeIconWrap: {
+    alignItems: "center",
+    width: (800 / 4) - 20, // Simplified for 4 items
+    maxWidth: 70,
+  },
+  badgeEmoji: {
+    fontSize: 28,
+    marginBottom: 4,
+  },
+  badgeLabel: {
+    ...FONTS.caption,
+    fontSize: 10,
+    color: COLORS.text_secondary,
+    textAlign: "center",
+  },
+  emptyBadges: {
+    ...FONTS.caption,
+    color: COLORS.text_muted,
+    fontStyle: "italic",
+    textAlign: "center",
+    width: "100%",
+    paddingVertical: 10,
+  },
   logoutBtn: {
     flexDirection: "row",
     alignItems: "center",

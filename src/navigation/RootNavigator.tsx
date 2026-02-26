@@ -30,6 +30,7 @@ import VolunteerDetailsScreen from "../screens/shared/VolunteerDetailsScreen";
 // New shared screens
 import AddBloodRequestScreen from "../screens/shared/AddBloodRequestScreen";
 import AddEventScreen from "../screens/shared/AddEventScreen";
+import AllBadgesScreen from "../screens/shared/AllBadgesScreen";
 import AssignVolunteerScreen from "../screens/shared/AssignVolunteerScreen";
 import BloodRequestDetailsScreen from "../screens/shared/BloodRequestDetailsScreen";
 import EventsScreen from "../screens/shared/EventsScreen";
@@ -103,6 +104,7 @@ const AppStack = () => {
       <Stack.Screen name="Notifications" component={NotificationsScreen} />
       <Stack.Screen name="Leaderboard" component={LeaderboardScreen} />
       <Stack.Screen name="Profile" component={ProfileScreen} />
+      <Stack.Screen name="AllBadges" component={AllBadgesScreen} />
       <Stack.Screen name="Events" component={EventsScreen} />
       <Stack.Screen name="AddEvent" component={AddEventScreen} />
       <Stack.Screen name="Reports" component={ReportsScreen} />

@@ -1,13 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-    Animated,
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Animated,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { KPICard } from "../../components/ui/KPICard";
 import { CardSkeleton } from "../../components/ui/SkeletonLoader";
@@ -40,18 +40,18 @@ export default function VolunteerDashboardScreen({ navigation }: any) {
     if (!profile?.email) return;
     setLoading(true);
     try {
-      const vols = await volunteerService.fetchAll();
-      const vol = vols.find(
-        (v) => v.email === profile.email || v.profile_id === profile.id,
+      const { data: vols } = await volunteerService.getAll();
+      const vol = (vols || []).find(
+        (v: Volunteer) => v.email === profile.email || v.profile_id === profile.id,
       );
       setVolunteer(vol ?? null);
 
       if (vol) {
-        const myTasks = await taskService.fetchAll({
-          assigned_to: vol.id,
+        const { data: myTasks } = await taskService.getAll({
+          filters: { assigned_to: vol.id },
         } as any);
         setTasks(
-          myTasks.filter((t: Task) => t.status !== "completed").slice(0, 5),
+          (myTasks || []).filter((t: Task) => t.status !== "completed").slice(0, 5),
         );
       }
     } catch (e) {
