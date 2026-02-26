@@ -1,15 +1,17 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { COLORS, FONTS, RADII, SPACING } from "../../constants/theme";
 import { taskService, volunteerService } from "../../services";
+import { useAuth } from "../../stores/AuthProvider";
 import { Task } from "../../types/database";
 
 const PRIORITY_COLOR: Record<string, string> = {
@@ -78,8 +80,11 @@ const TaskDetailsScreen = ({ route, navigation }: any) => {
   const [loading, setLoading] = useState(true);
   const [volunteerName, setVolunteerName] = useState<string | null>(null);
   const [assignerName, setAssignerName] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  const { userRole, profile } = useAuth();
 
-  useEffect(() => {
+  const load = () => {
+    setLoading(true);
     taskService
       .getById(taskId)
       .then(({ data }) => {
@@ -93,14 +98,73 @@ const TaskDetailsScreen = ({ route, navigation }: any) => {
           volunteerService
             .getById(toId)
             .then(({ data: v }) => setVolunteerName(v?.name ?? null))
-            .catch(() => {});
+            .catch(() => { });
         }
         // Assigner name
         if (data?.assignedByName) setAssignerName(data.assignedByName);
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    load();
   }, [taskId]);
+
+  const handleAccept = async () => {
+    setActionLoading(true);
+    try {
+      const { error } = await taskService.acceptTask(taskId);
+      if (error) {
+        Alert.alert("Error", error);
+      } else {
+        Alert.alert("Success", "You have accepted the task.");
+        load();
+      }
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleComplete = async () => {
+    if (!task) return;
+    const vId = task.assignedTo || task.assigned_to;
+    if (!vId) {
+      Alert.alert("Error", "No volunteer assigned to this task.");
+      return;
+    }
+
+    Alert.alert(
+      "Confirm Completion",
+      "Are you sure you want to mark this task as completed? The volunteer will be rewarded points.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Complete",
+          onPress: async () => {
+            setActionLoading(true);
+            try {
+              const { error } = await taskService.completeTask(
+                taskId,
+                vId,
+                task.city || "",
+                task.points_reward || 20, // Default points if not specified
+                volunteerName || "Volunteer"
+              );
+              if (error) {
+                Alert.alert("Error", error);
+              } else {
+                Alert.alert("Success", "Task marked as completed and points awarded.");
+                load();
+              }
+            } finally {
+              setActionLoading(false);
+            }
+          }
+        }
+      ]
+    );
+  };
 
   if (loading)
     return (
@@ -137,21 +201,21 @@ const TaskDetailsScreen = ({ route, navigation }: any) => {
   const dueDate =
     (task.dueDate ?? task.due_date)
       ? new Date(task.dueDate ?? task.due_date!).toLocaleDateString("en-IN", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-        })
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
       : null;
   const createdAt =
     (task.createdAt ?? task.created_at)
       ? new Date(task.createdAt ?? task.created_at!).toLocaleDateString(
-          "en-IN",
-          {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-          },
-        )
+        "en-IN",
+        {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        },
+      )
       : null;
 
   return (
@@ -341,6 +405,43 @@ const TaskDetailsScreen = ({ route, navigation }: any) => {
           />
         ) : (
           <DetailRow icon="time-outline" label="Created" value="—" last />
+        )}
+      </View>
+
+      {/* Action Buttons */}
+      <View style={styles.actionSection}>
+        {userRole === "volunteer" && task.status === "pending" && (
+          <TouchableOpacity
+            style={styles.primaryBtn}
+            onPress={handleAccept}
+            disabled={actionLoading}
+          >
+            {actionLoading ? (
+              <ActivityIndicator color="#FFF" size="small" />
+            ) : (
+              <>
+                <Ionicons name="checkbox-outline" size={20} color="#FFF" />
+                <Text style={styles.primaryBtnText}>Accept Task</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        )}
+
+        {(userRole === "admin" || userRole === "city_manager") && task.status === "in_progress" && (
+          <TouchableOpacity
+            style={[styles.primaryBtn, { backgroundColor: COLORS.success }]}
+            onPress={handleComplete}
+            disabled={actionLoading}
+          >
+            {actionLoading ? (
+              <ActivityIndicator color="#FFF" size="small" />
+            ) : (
+              <>
+                <Ionicons name="checkmark-done-circle" size={20} color="#FFF" />
+                <Text style={styles.primaryBtnText}>Confirm Completion</Text>
+              </>
+            )}
+          </TouchableOpacity>
         )}
       </View>
     </ScrollView>
@@ -544,6 +645,25 @@ const styles = StyleSheet.create({
     maxWidth: "55%",
     textAlign: "right",
     textTransform: "capitalize",
+  },
+  actionSection: {
+    padding: SPACING.m,
+    paddingTop: 0,
+  },
+  primaryBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: COLORS.primary,
+    padding: SPACING.m,
+    borderRadius: RADII.l,
+    gap: 10,
+    height: 54,
+  },
+  primaryBtnText: {
+    ...FONTS.h4,
+    color: "#FFF",
+    fontFamily: "Inter-Bold",
   },
 });
 

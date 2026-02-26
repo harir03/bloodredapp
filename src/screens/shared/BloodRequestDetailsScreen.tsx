@@ -1,12 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { BloodGroupBadge } from "../../components/ui/BloodGroupBadge";
 import { CardSkeleton } from "../../components/ui/SkeletonLoader";
@@ -42,6 +42,27 @@ export default function BloodRequestDetailsScreen({ route, navigation }: any) {
     profile?.role === "admin" ||
     profile?.role === "helpline" ||
     profile?.role === "city_manager";
+
+  const isVolunteer = profile?.role === "volunteer";
+
+  const handlePickup = async () => {
+    if (!profile) return;
+    setActionLoading(true);
+    try {
+      await bloodRequestService.assignVolunteer(
+        requestId,
+        profile.id,
+        profile.name,
+        profile.id,
+      );
+      Alert.alert("Success", "You have picked up this request. It's now in your Tasks.");
+      await load();
+    } catch (e) {
+      Alert.alert("Error", "Could not pick up request.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   const handleStatusChange = async (status: BloodRequest["status"]) => {
     if (!request) return;
@@ -124,6 +145,7 @@ export default function BloodRequestDetailsScreen({ route, navigation }: any) {
     low: COLORS.success,
   };
   const urgencyColor = urgencyColors[request.urgency] ?? COLORS.text_muted;
+  const isUnassigned = !request.assignedVolunteerId;
 
   return (
     <View style={styles.container}>
@@ -329,6 +351,24 @@ export default function BloodRequestDetailsScreen({ route, navigation }: any) {
               </TouchableOpacity>
             </View>
           )}
+
+        {/* Volunteer Action */}
+        {isVolunteer && isUnassigned && (
+          <View style={styles.actions}>
+            <TouchableOpacity
+              style={styles.primaryBtn}
+              onPress={handlePickup}
+              disabled={actionLoading}
+            >
+              <Ionicons
+                name="hand-right-outline"
+                size={18}
+                color={COLORS.white}
+              />
+              <Text style={styles.primaryBtnText}>Pick Up Request</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         <View style={{ height: 40 }} />
       </ScrollView>

@@ -1,14 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import AppButton from "../../components/ui/AppButton";
 import AppInput from "../../components/ui/AppInput";
@@ -57,7 +57,7 @@ export default function AddBloodRequestScreen({ navigation }: any) {
     }
     setLoading(true);
     try {
-      await bloodRequestService.create({
+      const requestData: any = {
         patientName: patientName.trim(),
         hospital: hospital.trim(),
         city: city.trim(),
@@ -67,15 +67,21 @@ export default function AddBloodRequestScreen({ navigation }: any) {
         status: "pending",
         requestedBy: profile?.id ?? "",
         requestedByName: profile?.name ?? "",
-        notes: notes.trim() || undefined,
-      });
+      };
+
+      if (notes.trim()) {
+        requestData.notes = notes.trim();
+      }
+
+      await bloodRequestService.create(requestData);
       Alert.alert(
         "Request Created",
         "Blood request has been submitted successfully.",
         [{ text: "OK", onPress: () => navigation.goBack() }],
       );
-    } catch (e) {
-      Alert.alert("Error", "Failed to create request. Please try again.");
+    } catch (e: any) {
+      console.error("Error creating blood request:", e);
+      Alert.alert("Error", `Failed to create request: ${e.message || 'Please try again.'}`);
     } finally {
       setLoading(false);
     }

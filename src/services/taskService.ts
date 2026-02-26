@@ -1,20 +1,21 @@
 import {
-    collection,
-    getCountFromServer,
-    query,
-    where,
+  collection,
+  getCountFromServer,
+  query,
+  where,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
 import type { Task } from "../types/database";
 import type { ListResult, QueryOptions, ServiceResult } from "./baseService";
 import {
-    countRecords,
-    create,
-    fetchAll,
-    fetchById,
-    remove,
-    update,
+  countRecords,
+  create,
+  fetchAll,
+  fetchById,
+  remove,
+  update,
 } from "./baseService";
+import { leaderboardService } from "./leaderboardService";
 
 const TABLE = "tasks";
 
@@ -73,6 +74,38 @@ export const taskService = {
       ...options,
       filters: { ...options?.filters, assigned_by: profileId },
     }),
+
+  acceptTask: async (taskId: string): Promise<ServiceResult<Task>> => {
+    return update<Task>(TABLE, taskId, { status: "in_progress" });
+  },
+
+  completeTask: async (
+    taskId: string,
+    volunteerId: string,
+    city: string,
+    points: number,
+    volunteerName: string,
+  ): Promise<ServiceResult<Task>> => {
+    const result = await update<Task>(TABLE, taskId, {
+      status: "completed",
+      completedAt: new Date().toISOString(),
+    });
+
+    if (!result.error) {
+      try {
+        await leaderboardService.addPoints(
+          volunteerId,
+          city,
+          points,
+          volunteerName,
+        );
+      } catch (e) {
+        console.error("Error rewarding points on task completion:", e);
+      }
+    }
+
+    return result;
+  },
 };
 
 export default taskService;

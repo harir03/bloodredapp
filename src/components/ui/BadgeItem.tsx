@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Alert, Share, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { COLORS, FONTS, SPACING } from "../../constants/theme";
 
 interface BadgeItemProps {
@@ -18,6 +18,18 @@ export const BadgeItem = ({
     isLocked = false,
     minPoints,
 }: BadgeItemProps) => {
+    const handleShare = async () => {
+        try {
+            const message = `I just earned the ${label} badge ${emoji} on BloodConnect! 🩸 Join me in making a difference. #BloodConnect #Achievement #Volunteer`;
+            await Share.share({
+                message,
+                title: `My BloodConnect Achievement: ${label}`,
+            });
+        } catch (error: any) {
+            Alert.alert("Sharing Error", error.message);
+        }
+    };
+
     return (
         <View style={[styles.container, isLocked && styles.containerLocked]}>
             <View style={[styles.iconWrap, isLocked && styles.iconWrapLocked]}>
@@ -37,9 +49,9 @@ export const BadgeItem = ({
                 )}
             </View>
             {!isLocked && (
-                <View style={styles.earnedBadge}>
-                    <Ionicons name="checkmark-circle" size={16} color={COLORS.success} />
-                </View>
+                <TouchableOpacity style={styles.shareBtn} onPress={handleShare}>
+                    <Ionicons name="share-social-outline" size={20} color={COLORS.primary} />
+                </TouchableOpacity>
             )}
         </View>
     );
@@ -98,5 +110,12 @@ const styles = StyleSheet.create({
     },
     earnedBadge: {
         padding: 4,
+    },
+    shareBtn: {
+        padding: 8,
+        backgroundColor: COLORS.surface2,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: COLORS.border,
     }
 });

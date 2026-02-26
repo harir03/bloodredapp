@@ -1,18 +1,19 @@
 import {
-    addDoc,
-    collection,
-    doc,
-    getDoc,
-    getDocs,
-    onSnapshot,
-    orderBy,
-    query,
-    Unsubscribe,
-    updateDoc,
-    where
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  onSnapshot,
+  orderBy,
+  query,
+  Unsubscribe,
+  updateDoc,
+  where
 } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { BloodRequest, ResponseLogEntry } from "../types/database";
+import { taskService } from "./taskService";
 
 const COL = "bloodRequests";
 
@@ -143,7 +144,10 @@ export const bloodRequestService = {
     };
     const ref = doc(db, COL, id);
     const snap = await getDoc(ref);
-    const responseLog: ResponseLogEntry[] = snap.data()?.responseLog ?? [];
+    const data = snap.data();
+    const responseLog: ResponseLogEntry[] = data?.responseLog ?? [];
+
+    // Update the blood request
     await updateDoc(ref, {
       assignedVolunteerId: volunteerId,
       assignedVolunteerName: volunteerName,
@@ -151,6 +155,26 @@ export const bloodRequestService = {
       status: "in_progress",
       responseLog: [...responseLog, logEntry],
     });
+
+    // Create a corresponding task for the volunteer
+    try {
+      await taskService.create({
+        title: `Blood Donation: ${data?.patientName || 'Request'}`,
+        description: `Assist with blood donation at ${data?.hospital || 'Hospital'} in ${data?.city || 'City'}.`,
+        assignedTo: volunteerId,
+        assignedToName: volunteerName,
+        assignedBy: by,
+        status: "pending",
+        priority: data?.urgency === "critical" ? "high" : "medium",
+        requestId: id,
+        city: data?.city,
+        type: "blood_donation",
+        points_reward: 50,
+        createdAt: new Date().toISOString(),
+      });
+    } catch (e) {
+      console.error("Failed to create task for blood request assignment:", e);
+    }
   },
 
   async escalate(id: string, by: string): Promise<void> {

@@ -211,6 +211,10 @@ export interface Task {
   createdAt: string;
   priority: "low" | "medium" | "high";
   points_reward?: number;
+  requestId?: string;
+  city?: string;
+  location?: string;
+  type?: "blood_donation" | "food_delivery" | "medical" | "logistics" | "other" | string;
   // Legacy compat
   assigned_to?: string;
   assigned_by?: string;
@@ -226,13 +230,13 @@ export interface AppNotification {
   title: string;
   body: string;
   type:
-    | "task_assigned"
-    | "request_matched"
-    | "request_escalated"
-    | "badge_earned"
-    | "event_reminder"
-    | "task_overdue"
-    | "general";
+  | "task_assigned"
+  | "request_matched"
+  | "request_escalated"
+  | "badge_earned"
+  | "event_reminder"
+  | "task_overdue"
+  | "general";
   read: boolean;
   createdAt: string;
   linkedEntity?: {
@@ -293,12 +297,12 @@ export interface HelplineCall {
   caller_name: string;
   caller_phone: string;
   call_type:
-    | "blood_request"
-    | "donor_inquiry"
-    | "volunteer_inquiry"
-    | "complaint"
-    | "emergency"
-    | "other";
+  | "blood_request"
+  | "donor_inquiry"
+  | "volunteer_inquiry"
+  | "complaint"
+  | "emergency"
+  | "other";
   priority: "low" | "medium" | "high" | "critical";
   status: "pending" | "in_progress" | "resolved" | "escalated" | "closed";
   blood_group_needed?: string;

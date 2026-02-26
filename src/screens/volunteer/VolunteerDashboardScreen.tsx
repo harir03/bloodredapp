@@ -13,16 +13,18 @@ import { KPICard } from "../../components/ui/KPICard";
 import { CardSkeleton } from "../../components/ui/SkeletonLoader";
 import { StatusPill } from "../../components/ui/StatusPill";
 import { COLORS, FONTS, SPACING } from "../../constants/theme";
+import { bloodRequestService } from "../../services/bloodRequestService";
 import { BADGES, computeBadges } from "../../services/leaderboardService";
 import { taskService } from "../../services/taskService";
 import { volunteerService } from "../../services/volunteerService";
 import { useAuth } from "../../stores/AuthProvider";
-import { Task, Volunteer } from "../../types/database";
+import { BloodRequest, Task, Volunteer } from "../../types/database";
 
 export default function VolunteerDashboardScreen({ navigation }: any) {
   const { profile } = useAuth();
   const [volunteer, setVolunteer] = useState<Volunteer | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [liveRequests, setLiveRequests] = useState<BloodRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const bounceAnim = useRef(new Animated.Value(0)).current;
@@ -64,6 +66,16 @@ export default function VolunteerDashboardScreen({ navigation }: any) {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    const unsub = bloodRequestService.subscribeToLive((reqs) => {
+      // Filter for unassigned requests
+      // Fetch all unassigned requests to ensure visibility
+      const unassigned = reqs.filter(r => !r.assignedVolunteerId);
+      setLiveRequests(unassigned.slice(0, 5));
+    });
+    return () => unsub();
+  }, []);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -204,7 +216,7 @@ export default function VolunteerDashboardScreen({ navigation }: any) {
         <View style={styles.taskHeader}>
           <Text style={styles.sectionTitle}>Active Tasks</Text>
           <TouchableOpacity
-            onPress={() => navigation.navigate("AssignedTasks")}
+            onPress={() => navigation.navigate("Tasks")}
           >
             <Text style={styles.viewAll}>View All</Text>
           </TouchableOpacity>
@@ -261,6 +273,58 @@ export default function VolunteerDashboardScreen({ navigation }: any) {
             </TouchableOpacity>
           ))
         )}
+
+        {/* Live Blood Requests */}
+        <View style={{ marginBottom: SPACING.xl }}>
+          <View style={styles.taskHeader}>
+            <Text style={styles.sectionTitle}>Live Blood Requests 🩸</Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate("ManageBloodRequests")}
+            >
+              <Text style={styles.viewAll}>View All</Text>
+            </TouchableOpacity>
+          </View>
+          {liveRequests.length === 0 ? (
+            <View style={[styles.taskCard, { justifyContent: 'center', opacity: 0.6 }]}>
+              <Text style={styles.taskTitle}>No active blood requests nearby</Text>
+            </View>
+          ) : (
+            liveRequests.map((req) => (
+              <TouchableOpacity
+                key={req.id}
+                style={[styles.taskCard, { borderColor: req.urgency === 'critical' ? COLORS.critical + '88' : COLORS.border }]}
+                onPress={() =>
+                  navigation.navigate("BloodRequestDetails", { requestId: req.id })
+                }
+              >
+                <View style={styles.taskLeft}>
+                  <View
+                    style={[
+                      styles.taskDot,
+                      {
+                        backgroundColor:
+                          req.urgency === "critical"
+                            ? COLORS.critical
+                            : req.urgency === "medium"
+                              ? COLORS.warning
+                              : COLORS.success,
+                      },
+                    ]}
+                  />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.taskTitle} numberOfLines={1}>
+                      {req.bloodGroup} for {req.patientName}
+                    </Text>
+                    <Text style={styles.taskDue}>
+                      {req.hospital} • {req.city}
+                    </Text>
+                  </View>
+                </View>
+                <StatusPill value={req.urgency} />
+              </TouchableOpacity>
+            ))
+          )}
+        </View>
 
         {/* Quick Actions */}
         <Text style={styles.sectionTitle}>Quick Access</Text>
