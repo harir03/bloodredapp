@@ -12,12 +12,14 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { COLORS, FONTS, RADII, SPACING } from "../../constants/theme";
 import { eventService } from "../../services/eventService";
 
 const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "Unknown"];
 
 export default function AddLeadScreen({ route, navigation }: any) {
+    const insets = useSafeAreaInsets();
     const { eventId } = route.params ?? {};
 
     const [form, setForm] = useState({
@@ -57,7 +59,7 @@ export default function AddLeadScreen({ route, navigation }: any) {
             style={styles.container}
             behavior={Platform.OS === "ios" ? "padding" : undefined}
         >
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: insets.top + SPACING.s }]}>
                 <TouchableOpacity
                     onPress={() => navigation.goBack()}
                     style={styles.backBtn}
@@ -151,7 +153,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         padding: SPACING.l,
-        paddingTop: SPACING.xxl,
+        paddingBottom: SPACING.l,
         borderBottomWidth: 1,
         borderBottomColor: COLORS.border,
     },

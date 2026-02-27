@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { captureRef } from "react-native-view-shot";
 import { BloodGroupBadge } from "../../components/ui/BloodGroupBadge";
 import { COLORS, FONTS, RADII, SPACING } from "../../constants/theme";
@@ -40,6 +41,7 @@ function InfoRow({
 }
 
 export default function ProfileScreen({ navigation }: any) {
+  const insets = useSafeAreaInsets();
   const { profile, userName, userEmail, userRole, logout } = useAuth();
   const [loggingOut, setLoggingOut] = useState(false);
 
@@ -122,7 +124,7 @@ export default function ProfileScreen({ navigation }: any) {
   return (
     <View collapsable={false} ref={viewRef} style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + SPACING.s }]}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.backBtn}
@@ -261,7 +263,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: SPACING.l,
-    paddingTop: SPACING.xxl,
+    paddingBottom: SPACING.l,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },

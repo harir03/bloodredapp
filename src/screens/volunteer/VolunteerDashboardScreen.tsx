@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KPICard } from "../../components/ui/KPICard";
 import { CardSkeleton } from "../../components/ui/SkeletonLoader";
 import { StatusPill } from "../../components/ui/StatusPill";
@@ -21,6 +22,7 @@ import { useAuth } from "../../stores/AuthProvider";
 import { BloodRequest, Task, Volunteer } from "../../types/database";
 
 export default function VolunteerDashboardScreen({ navigation }: any) {
+  const insets = useSafeAreaInsets();
   const { profile } = useAuth();
   const [volunteer, setVolunteer] = useState<Volunteer | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -105,7 +107,10 @@ export default function VolunteerDashboardScreen({ navigation }: any) {
     <View style={styles.container}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[
+          styles.scroll,
+          { paddingTop: insets.top + SPACING.l }
+        ]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -379,7 +384,7 @@ export default function VolunteerDashboardScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  scroll: { paddingHorizontal: SPACING.xxl, paddingTop: SPACING.xxxxl + 8 },
+  scroll: { paddingHorizontal: SPACING.xxl, paddingBottom: SPACING.xxl },
   heroCard: {
     backgroundColor: COLORS.surface,
     borderRadius: 16,

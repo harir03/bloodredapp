@@ -1,5 +1,7 @@
+import { collection, limit, onSnapshot, query, where } from "firebase/firestore";
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { AIHeroNotification } from "../components/ui/AIHeroNotification";
+import { db } from "../config/firebase";
 import { aiService } from "../services/aiService";
 import { taskService } from "../services/taskService";
 import { useAuth } from "./AuthProvider";
@@ -37,10 +39,10 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
 
         if (roleToUse === "volunteer" && userId) {
             try {
-                const myTasks = await taskService.getByVolunteer(userId);
-                const pendingTasks = await taskService.getPending();
-                aiData.taskCount = myTasks.count;
-                aiData.unassignedTasks = pendingTasks.count;
+                const { count: myTaskCount } = await taskService.getByVolunteer(userId);
+                const { count: unassignedCount } = await taskService.getPending();
+                aiData.taskCount = myTaskCount;
+                aiData.unassignedTasks = unassignedCount;
             } catch (e) {
                 console.error("Error fetching tasks for AI notification:", e);
             }
@@ -66,6 +68,29 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
             return () => clearTimeout(timer);
         }
     }, [profile, fetchAndShowNotification]);
+
+    // Real-time listener for critical blood requests to trigger "Push-like" in-app alerts
+    useEffect(() => {
+        if (!profile || userRole !== "donor") return;
+
+        const q = query(
+            collection(db, "blood_requests"),
+            where("urgency", "==", "critical"),
+            where("status", "==", "pending"),
+            limit(1)
+        );
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+                if (change.type === "added") {
+                    // A new critical request was added!
+                    fetchAndShowNotification("donor");
+                }
+            });
+        });
+
+        return unsubscribe;
+    }, [profile, userRole, fetchAndShowNotification]);
 
     return (
         <NotificationContext.Provider value={{ triggerNotification: fetchAndShowNotification }}>

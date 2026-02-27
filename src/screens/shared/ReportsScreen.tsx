@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KPICard } from "../../components/ui/KPICard";
 import { KPISkeleton } from "../../components/ui/SkeletonLoader";
 import { COLORS, FONTS, RADII, SPACING } from "../../constants/theme";
@@ -26,6 +27,7 @@ type StatSection = {
 };
 
 export default function ReportsScreen({ navigation }: any) {
+  const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [kpis, setKpis] = useState({
@@ -163,7 +165,7 @@ export default function ReportsScreen({ navigation }: any) {
   return (
     <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + SPACING.s }]}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.backBtn}
@@ -312,7 +314,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: SPACING.m,
-    paddingTop: SPACING.xl,
     paddingBottom: SPACING.m,
     backgroundColor: COLORS.surface,
     borderBottomWidth: 1,

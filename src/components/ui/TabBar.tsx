@@ -1,16 +1,25 @@
 
 import { Dimensions, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Animated, { useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../../constants/theme';
 
 const { width } = Dimensions.get('window');
 
 const TabBar = ({ state, descriptors, navigation }: any) => {
+  const insets = useSafeAreaInsets();
   const totalWidth = width;
   const tabWidth = totalWidth / state.routes.length;
 
   return (
-    <View style={[styles.tabBarContainer, { width: totalWidth }]}>
+    <View style={[
+      styles.tabBarContainer,
+      {
+        width: totalWidth,
+        paddingBottom: insets.bottom,
+        height: 60 + insets.bottom
+      }
+    ]}>
       {state.routes.map((route: any, index: number) => {
         const { options } = descriptors[route.key];
         const label = options.tabBarLabel !== undefined
@@ -69,7 +78,6 @@ const TabBar = ({ state, descriptors, navigation }: any) => {
 const styles = StyleSheet.create({
   tabBarContainer: {
     flexDirection: 'row',
-    height: 80,
     position: 'absolute',
     bottom: 0,
     backgroundColor: COLORS.surface,

@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KPICard } from "../../components/ui/KPICard";
 import { RequestCard } from "../../components/ui/RequestCard";
 import { KPISkeleton } from "../../components/ui/SkeletonLoader";
@@ -29,6 +30,7 @@ interface KPIData {
 }
 
 export default function AdminDashboardScreen({ navigation }: any) {
+  const insets = useSafeAreaInsets();
   const { profile } = useAuth();
   const [kpi, setKpi] = useState<KPIData | null>(null);
   const [liveRequests, setLiveRequests] = useState<BloodRequest[]>([]);
@@ -101,7 +103,7 @@ export default function AdminDashboardScreen({ navigation }: any) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + SPACING.m }]}>
         <View>
           <Text style={styles.greeting}>
             {greeting()}, {profile?.name?.split(" ")[0]} 👋
@@ -311,7 +313,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: SPACING.xxl,
-    paddingTop: SPACING.xxxxl + 8,
     paddingBottom: SPACING.l,
   },
   greeting: { ...FONTS.h3, color: COLORS.text_primary },

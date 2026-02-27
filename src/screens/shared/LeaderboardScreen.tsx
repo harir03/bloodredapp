@@ -1,13 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-    FlatList,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ListItemSkeleton } from "../../components/ui/SkeletonLoader";
 import { COLORS, FONTS, SPACING } from "../../constants/theme";
 import { leaderboardService } from "../../services/leaderboardService";
@@ -57,6 +58,7 @@ function PodiumCard({
 }
 
 export default function LeaderboardScreen({ navigation }: any) {
+  const insets = useSafeAreaInsets();
   const [boards, setBoards] = useState<CityLeaderboard[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -92,7 +94,7 @@ export default function LeaderboardScreen({ navigation }: any) {
   return (
     <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + SPACING.s }]}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.backBtn}
@@ -210,7 +212,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: SPACING.xxl,
-    paddingTop: SPACING.xxxxl + 4,
     paddingBottom: SPACING.l,
     gap: 12,
   },

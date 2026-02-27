@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KPICard } from "../../components/ui/KPICard";
 import { KPISkeleton } from "../../components/ui/SkeletonLoader";
 import { COLORS, FONTS, RADII, SPACING } from "../../constants/theme";
@@ -25,6 +26,7 @@ interface KPI {
 }
 
 export default function CityManagerDashboardScreen({ navigation }: any) {
+  const insets = useSafeAreaInsets();
   const { userName } = useAuth();
   const [kpi, setKpi] = useState<KPI>({
     volunteers: 0,
@@ -86,7 +88,7 @@ export default function CityManagerDashboardScreen({ navigation }: any) {
       }
     >
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + SPACING.l }]}>
         <View>
           <Text style={styles.greeting}>{greeting},</Text>
           <Text style={styles.name}>
@@ -209,7 +211,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "flex-start",
     paddingHorizontal: SPACING.l,
-    paddingTop: SPACING.xxl,
     paddingBottom: SPACING.m,
   },
   greeting: { ...FONTS.body2, color: COLORS.text_muted },

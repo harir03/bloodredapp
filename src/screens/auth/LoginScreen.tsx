@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import {
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AppButton from "../../components/ui/AppButton";
 import AppInput from "../../components/ui/AppInput";
 import { COLORS, FONTS, SPACING } from "../../constants/theme";
@@ -14,6 +15,7 @@ import { useAuth } from "../../stores/AuthProvider";
 import { useToast } from "../../stores/ToastProvider";
 
 const LoginScreen = ({ navigation }: any) => {
+  const insets = useSafeAreaInsets();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -45,7 +47,10 @@ const LoginScreen = ({ navigation }: any) => {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingTop: insets.top + SPACING.l }
+        ]}
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.logoContainer}>

@@ -6,7 +6,7 @@ import { firebaseConfig } from "../config/env";
 // @ts-ignore
 const GEMINI_API_KEY = firebaseConfig.geminiApiKey || firebaseConfig.apiKey;
 
-const genAI = new GoogleGenAI(GEMINI_API_KEY as string);
+const genAI = new GoogleGenAI({ apiKey: GEMINI_API_KEY as string }) as any;
 
 export type NotificationTarget = "donor" | "volunteer";
 
