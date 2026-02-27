@@ -14,6 +14,7 @@ import AdminNavigator from "../screens/admin/AdminNavigator";
 import CityManagerNavigator from "../screens/city-manager/CityManagerNavigator";
 import HelplineNavigator from "../screens/helpline/HelplineNavigator";
 import HRManagerNavigator from "../screens/hr-manager/HRManagerNavigator";
+import DonorNavigator from "../screens/volunteer/DonorNavigator";
 import VolunteerNavigator from "../screens/volunteer/VolunteerNavigator";
 
 // Shared Screens
@@ -62,14 +63,16 @@ const getRoleNavigator = (role: string) => {
       return HRManagerNavigator;
     case "volunteer":
       return VolunteerNavigator;
+    case "donor":
+      return DonorNavigator;
     default:
-      return AdminNavigator;
+      return DonorNavigator;
   }
 };
 
 const AppStack = () => {
   const { userRole } = useAuth();
-  const RoleNavigator = getRoleNavigator(userRole || "admin");
+  const RoleNavigator = getRoleNavigator(userRole || "donor");
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>

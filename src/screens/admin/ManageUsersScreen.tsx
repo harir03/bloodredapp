@@ -1,17 +1,17 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback, useMemo, useState } from "react";
 import {
-    ActivityIndicator,
-    FlatList,
-    Modal,
-    Pressable,
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  FlatList,
+  Modal,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { COLORS, FONTS, RADII, SPACING } from "../../constants/theme";
 import { useQuery } from "../../hooks/useQuery";
@@ -27,6 +27,7 @@ const ROLE_META: Record<
   helpline: { label: "Helpline", icon: "call", color: "#22C55E" },
   hr_manager: { label: "HR Manager", icon: "briefcase", color: "#F59E0B" },
   volunteer: { label: "Volunteer", icon: "heart", color: "#EC4899" },
+  donor: { label: "Donor", icon: "water", color: COLORS.accent },
 };
 
 const SORT_OPTIONS: {
@@ -35,17 +36,17 @@ const SORT_OPTIONS: {
   dir: "asc" | "desc";
   icon: string;
 }[] = [
-  { label: "Name A to Z", by: "name", dir: "asc", icon: "arrow-up-outline" },
-  { label: "Name Z to A", by: "name", dir: "desc", icon: "arrow-down-outline" },
-  {
-    label: "Newest first",
-    by: "created_at",
-    dir: "desc",
-    icon: "time-outline",
-  },
-  { label: "Oldest first", by: "created_at", dir: "asc", icon: "time-outline" },
-  { label: "By Role", by: "role", dir: "asc", icon: "people-outline" },
-];
+    { label: "Name A to Z", by: "name", dir: "asc", icon: "arrow-up-outline" },
+    { label: "Name Z to A", by: "name", dir: "desc", icon: "arrow-down-outline" },
+    {
+      label: "Newest first",
+      by: "created_at",
+      dir: "desc",
+      icon: "time-outline",
+    },
+    { label: "Oldest first", by: "created_at", dir: "asc", icon: "time-outline" },
+    { label: "By Role", by: "role", dir: "asc", icon: "people-outline" },
+  ];
 
 const STATUS_OPTIONS: {
   label: string;
@@ -53,25 +54,25 @@ const STATUS_OPTIONS: {
   icon: string;
   color: string;
 }[] = [
-  {
-    label: "All",
-    value: "all",
-    icon: "apps-outline",
-    color: COLORS.text_secondary,
-  },
-  {
-    label: "Active",
-    value: "active",
-    icon: "checkmark-circle-outline",
-    color: "#22C55E",
-  },
-  {
-    label: "Inactive",
-    value: "inactive",
-    icon: "close-circle-outline",
-    color: COLORS.text_muted,
-  },
-];
+    {
+      label: "All",
+      value: "all",
+      icon: "apps-outline",
+      color: COLORS.text_secondary,
+    },
+    {
+      label: "Active",
+      value: "active",
+      icon: "checkmark-circle-outline",
+      color: "#22C55E",
+    },
+    {
+      label: "Inactive",
+      value: "inactive",
+      icon: "close-circle-outline",
+      color: COLORS.text_muted,
+    },
+  ];
 
 const getInitials = (name: string) =>
   name

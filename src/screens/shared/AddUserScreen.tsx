@@ -1,17 +1,17 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { COLORS, FONTS, RADII, SPACING } from "../../constants/theme";
 import { profileService } from "../../services";
@@ -24,42 +24,49 @@ const ROLES: {
   color: string;
   description: string;
 }[] = [
-  {
-    label: "Admin",
-    value: "admin",
-    icon: "shield",
-    color: COLORS.primary,
-    description: "Full system access",
-  },
-  {
-    label: "City Manager",
-    value: "city_manager",
-    icon: "business",
-    color: "#3B82F6",
-    description: "Manages city operations",
-  },
-  {
-    label: "Helpline Operator",
-    value: "helpline",
-    icon: "call",
-    color: "#22C55E",
-    description: "Handles incoming calls",
-  },
-  {
-    label: "HR Manager",
-    value: "hr_manager",
-    icon: "briefcase",
-    color: "#F59E0B",
-    description: "Manages staff & volunteers",
-  },
-  {
-    label: "Volunteer",
-    value: "volunteer",
-    icon: "heart",
-    color: "#EC4899",
-    description: "Field volunteer",
-  },
-];
+    {
+      label: "Donor",
+      value: "donor",
+      icon: "water",
+      color: COLORS.accent,
+      description: "Standard blood donor",
+    },
+    {
+      label: "Volunteer",
+      value: "volunteer",
+      icon: "heart",
+      color: "#EC4899",
+      description: "Field volunteer",
+    },
+    {
+      label: "Admin",
+      value: "admin",
+      icon: "shield",
+      color: COLORS.primary,
+      description: "Full system access",
+    },
+    {
+      label: "City Manager",
+      value: "city_manager",
+      icon: "business",
+      color: "#3B82F6",
+      description: "Manages city operations",
+    },
+    {
+      label: "Helpline Operator",
+      value: "helpline",
+      icon: "call",
+      color: "#22C55E",
+      description: "Handles incoming calls",
+    },
+    {
+      label: "HR Manager",
+      value: "hr_manager",
+      icon: "briefcase",
+      color: "#F59E0B",
+      description: "Manages staff & volunteers",
+    },
+  ];
 
 const getInitials = (n: string) =>
   n
@@ -73,7 +80,7 @@ const getInitials = (n: string) =>
 const AddUserScreen = ({ navigation }: any) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState<UserRole>("volunteer");
+  const [role, setRole] = useState<UserRole>("donor");
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);

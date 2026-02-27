@@ -1,13 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { COLORS, FONTS, RADII, SPACING } from "../../constants/theme";
 import { profileService, taskService, volunteerService } from "../../services";
@@ -22,6 +22,7 @@ const ROLE_META: Record<
   helpline: { label: "Helpline", icon: "call", color: "#22C55E" },
   hr_manager: { label: "HR Manager", icon: "briefcase", color: "#F59E0B" },
   volunteer: { label: "Volunteer", icon: "heart", color: "#EC4899" },
+  donor: { label: "Donor", icon: "water", color: COLORS.accent },
 };
 
 const PRIORITY_COLOR: Record<string, string> = {
@@ -120,7 +121,7 @@ const UserDetailsScreen = ({ route, navigation }: any) => {
     taskService
       .getByAssignedBy(userId, { limit: 50 })
       .then(({ data }) => setTasks(data))
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setTasksLoading(false));
   };
 
@@ -134,7 +135,7 @@ const UserDetailsScreen = ({ route, navigation }: any) => {
       volunteerService
         .getByEmail(user.email)
         .then(({ data }) => setVolunteerUUID(data?.id ?? null))
-        .catch(() => {});
+        .catch(() => { });
     }
   }, [user?.email]);
 
@@ -145,13 +146,74 @@ const UserDetailsScreen = ({ route, navigation }: any) => {
       const { error: err } = await profileService.update(userId, {
         is_active: !user.is_active,
       });
-      if (!err) setUser({ ...user, is_active: !user.is_active });
-      else Alert.alert("Error", err);
+      if (!err) {
+        setUser({ ...user, is_active: !user.is_active });
+        // Also update volunteer status if exists
+        if (volunteerUUID) {
+          await volunteerService.update(volunteerUUID, {
+            status: !user.is_active ? "active" : "inactive"
+          });
+        }
+      } else Alert.alert("Error", err);
     } catch (e: any) {
       Alert.alert("Error", e.message || "Failed to update user");
     } finally {
       setToggling(false);
     }
+  };
+
+  const handlePromoteToVolunteer = async () => {
+    if (!user) return;
+    Alert.alert(
+      "Confirm Promotion",
+      "Elevate this user to Volunteer role? They will be able to accept and manage tasks.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Promote",
+          onPress: async () => {
+            setToggling(true);
+            try {
+              // 1. Profile Role
+              await profileService.update(userId, { role: "volunteer" });
+              // 2. Volunteer Status/Record
+              if (volunteerUUID) {
+                await volunteerService.update(volunteerUUID, { status: "active" });
+              } else {
+                // Legacy user without a volunteer record: Create one now
+                const now = new Date().toISOString();
+                const newVolData = {
+                  profile_id: userId,
+                  name: user.name,
+                  email: user.email,
+                  phone: user.phone || "",
+                  blood_group: user.blood_group || "",
+                  area: "",
+                  city: (user as any).city || "",
+                  status: "active" as const,
+                  badges: ["new_recruit"],
+                  skills: [],
+                  totalTasksCompleted: 0,
+                  totalCampsAttended: 0,
+                  joined_at: now,
+                  joinedAt: now,
+                  attendanceLog: [],
+                };
+                // Need to use the raw Firebase service or custom logic to ensure we use userId as the doc ID
+                // For safety and UI reactivity, we'll try to just reload the user after this
+                await volunteerService.create(newVolData);
+              }
+              setUser({ ...user, role: "volunteer" });
+              Alert.alert("Success", `${user.name} is now a Volunteer!`);
+            } catch (e: any) {
+              Alert.alert("Error", e.message || "Failed to promote user");
+            } finally {
+              setToggling(false);
+            }
+          }
+        }
+      ]
+    );
   };
 
   if (loading)
@@ -330,6 +392,27 @@ const UserDetailsScreen = ({ route, navigation }: any) => {
 
       {/* ── Actions ── */}
       <Text style={styles.sectionLabel}>ACTIONS</Text>
+
+      {user.role === "donor" && (
+        <TouchableOpacity
+          style={[styles.actionOutline, { borderColor: "#EC4899" + "66", backgroundColor: "#EC4899" + "0e" }]}
+          onPress={handlePromoteToVolunteer}
+          disabled={toggling}
+          activeOpacity={0.85}
+        >
+          <View style={styles.actionPrimaryLeft}>
+            <View style={[styles.actionIcon, { backgroundColor: "#EC4899" + "22" }]}>
+              <Ionicons name="ribbon-outline" size={18} color="#EC4899" />
+            </View>
+            <View>
+              <Text style={[styles.actionTitle, { color: "#EC4899" }]}>Promote to Volunteer</Text>
+              <Text style={styles.actionSub}>Enable task acceptance for this donor</Text>
+            </View>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={COLORS.text_muted} />
+        </TouchableOpacity>
+      )}
+
       <TouchableOpacity
         style={styles.actionPrimary}
         onPress={() =>
@@ -504,7 +587,7 @@ const UserDetailsScreen = ({ route, navigation }: any) => {
                       </Text>
                     </View>
                     <Text style={styles.taskType}>
-                      {task.type.replace(/_/g, " ")}
+                      {task.type?.replace(/_/g, " ") || "General"}
                     </Text>
                   </View>
                 </View>

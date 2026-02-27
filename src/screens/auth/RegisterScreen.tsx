@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import {
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import AppButton from "../../components/ui/AppButton";
 import AppInput from "../../components/ui/AppInput";
@@ -44,7 +44,7 @@ const RegisterScreen = ({ navigation }: any) => {
         email,
         password,
         name,
-        "volunteer",
+        "donor",
         bloodGroup,
       );
       if (success) {

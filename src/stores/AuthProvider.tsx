@@ -131,9 +131,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     email: string,
     password: string,
     name: string,
-    role: UserRole = "volunteer",
+    role: UserRole = "donor",
     bloodGroup?: string,
   ): Promise<boolean> => {
+    console.log(`[Auth] register() called with email: ${email}, role: ${role}`);
+    // Safety check: ensure role is donor for new registrations if not specified
+    const finalRole = role === "volunteer" ? "donor" : role;
+
     try {
       const credential = await createUserWithEmailAndPassword(
         firebaseAuth,
@@ -141,6 +145,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         password,
       );
       if (credential.user) {
+        console.log(`[Auth] User created with UID: ${credential.user.uid}. Final Role: ${finalRole}`);
         // Update Firebase display name
         await updateProfile(credential.user, { displayName: name });
 
@@ -150,7 +155,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         const profileData = {
           email: email.toLowerCase(),
           name,
-          role,
+          role: finalRole,
           blood_group: bloodGroup || null,
           is_active: true,
           points: 0,
@@ -164,6 +169,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         ).catch((e) => console.error("Profile creation error:", e.message));
 
         // Create a volunteer record using the SAME UID as the document ID
+        // Note: New users start as 'inactive' volunteers until approved by admin
         const volunteerData: Record<string, any> = {
           profile_id: credential.user.uid,
           name,
@@ -172,7 +178,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           blood_group: bloodGroup || "",
           area: "",
           city: "",
-          status: "active",
+          status: "inactive",
           tasks_completed: 0,
           points: 0,
           badges: ["new_recruit"],

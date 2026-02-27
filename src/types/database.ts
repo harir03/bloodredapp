@@ -5,7 +5,8 @@ export type UserRole =
   | "city_manager"
   | "hr_manager"
   | "helpline"
-  | "volunteer";
+  | "volunteer"
+  | "donor";
 
 export type BloodGroup =
   | "A+"
