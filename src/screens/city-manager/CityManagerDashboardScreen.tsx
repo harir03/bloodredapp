@@ -1,12 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { KPICard } from "../../components/ui/KPICard";
 import { KPISkeleton } from "../../components/ui/SkeletonLoader";
@@ -50,12 +50,12 @@ export default function CityManagerDashboardScreen({ navigation }: any) {
           bloodRequestService.getRecentStats(),
         ]);
       setKpi({
-        volunteers: volRes ?? 0,
-        activeCalls: activeCallRes ?? 0,
-        resolvedCalls: resolvedCallRes ?? 0,
-        pendingTasks: taskRes ?? 0,
-        pendingRequests: reqStats.pending,
-        criticalRequests: reqStats.critical,
+        volunteers: volRes.count ?? 0,
+        activeCalls: activeCallRes.count ?? 0,
+        resolvedCalls: resolvedCallRes.count ?? 0,
+        pendingTasks: taskRes.count ?? 0,
+        pendingRequests: reqStats.pending ?? 0,
+        criticalRequests: reqStats.critical ?? 0,
       });
     } catch (e) {
       console.log("CityManager KPI error:", e);

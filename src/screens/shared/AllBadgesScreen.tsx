@@ -1,6 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useEffect } from "react";
+import * as Sharing from "expo-sharing";
+import { useEffect, useRef } from "react";
 import { ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { captureRef } from "react-native-view-shot";
 import { BadgeItem } from "../../components/ui/BadgeItem";
 import { COLORS, FONTS, SPACING } from "../../constants/theme";
 import { BADGES, computeBadges, leaderboardService } from "../../services/leaderboardService";
@@ -22,20 +24,43 @@ export default function AllBadgesScreen({ navigation }: any) {
 
     const badgeList = Object.entries(BADGES).sort((a, b) => a[1].minPoints - b[1].minPoints);
 
+    const viewRef = useRef(null);
+
     const handleShareCollection = async () => {
         try {
             const message = `I've unlocked ${earnedBadges.length} out of ${badgeList.length} badges on BloodConnect Collection! 🏆🩸 Join our mission to help those in need! #BloodConnect #Awards #Volunteer`;
-            await Share.share({
-                message,
-                title: "My Badge Collection",
-            });
+
+            let imageUri = null;
+            try {
+                if (viewRef.current) {
+                    imageUri = await captureRef(viewRef, {
+                        format: "png",
+                        quality: 0.9,
+                    });
+                }
+            } catch (e) {
+                console.log("Failed to capture badge collection", e);
+            }
+
+            if (imageUri && await Sharing.isAvailableAsync()) {
+                await Sharing.shareAsync(imageUri, {
+                    dialogTitle: "Share Badge Collection",
+                    mimeType: "image/png",
+                    UTI: "public.png",
+                });
+            } else {
+                await Share.share({
+                    message,
+                    title: "My Badge Collection",
+                });
+            }
         } catch (error: any) {
             // Already handled by Share API
         }
     };
 
     return (
-        <View style={styles.container}>
+        <View collapsable={false} ref={viewRef} style={styles.container}>
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity

@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useCallback, useState } from "react";
+import * as Sharing from "expo-sharing";
+import { useCallback, useRef, useState } from "react";
 import {
   Alert,
   ScrollView,
@@ -9,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { captureRef } from "react-native-view-shot";
 import { BloodGroupBadge } from "../../components/ui/BloodGroupBadge";
 import { COLORS, FONTS, RADII, SPACING } from "../../constants/theme";
 import { BADGES, computeBadges } from "../../services/leaderboardService";
@@ -59,6 +61,8 @@ export default function ProfileScreen({ navigation }: any) {
     ]);
   }, [logout]);
 
+  const viewRef = useRef(null);
+
   const handleShareProfile = async () => {
     try {
       const stats = {
@@ -69,10 +73,30 @@ export default function ProfileScreen({ navigation }: any) {
 
       const message = `I'm a proud BloodConnect Volunteer! 🩸\n\nImpact Stats:\n✨ ${stats.points} Points Earned\n✅ ${stats.tasks} Tasks Completed\n🏆 ${stats.badges} Badges Unlocked\n\nJoin me in saving lives! Download BloodConnect today. #BloodConnect #Volunteer #Impact`;
 
-      await Share.share({
-        message,
-        title: "My BloodConnect Impact",
-      });
+      let imageUri = null;
+      try {
+        if (viewRef.current) {
+          imageUri = await captureRef(viewRef, {
+            format: "png",
+            quality: 0.9,
+          });
+        }
+      } catch (e) {
+        console.log("Failed to capture profile", e);
+      }
+
+      if (imageUri && await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(imageUri, {
+          dialogTitle: "Share Profile Impact",
+          mimeType: "image/png",
+          UTI: "public.png",
+        });
+      } else {
+        await Share.share({
+          message,
+          title: "My BloodConnect Impact",
+        });
+      }
     } catch (error: any) {
       Alert.alert("Sharing Error", error.message);
     }
@@ -96,7 +120,7 @@ export default function ProfileScreen({ navigation }: any) {
     : "?";
 
   return (
-    <View style={styles.container}>
+    <View collapsable={false} ref={viewRef} style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
