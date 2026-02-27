@@ -31,6 +31,7 @@ import VolunteerDetailsScreen from "../screens/shared/VolunteerDetailsScreen";
 // New shared screens
 import AddBloodRequestScreen from "../screens/shared/AddBloodRequestScreen";
 import AddEventScreen from "../screens/shared/AddEventScreen";
+import AddLeadScreen from "../screens/shared/AddLeadScreen";
 import AllBadgesScreen from "../screens/shared/AllBadgesScreen";
 import AssignVolunteerScreen from "../screens/shared/AssignVolunteerScreen";
 import AssignVolunteerToEventScreen from "../screens/shared/AssignVolunteerToEventScreen";

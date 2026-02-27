@@ -1,6 +1,7 @@
-import React, { useCallback } from "react";
+import { useCallback } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   RefreshControl,
   StyleSheet,
@@ -15,7 +16,6 @@ import { useQuery } from "../../hooks/useQuery";
 import { volunteerService } from "../../services";
 import { Volunteer } from "../../types/database";
 import { exportToCSV } from "../../utils/exportUtils";
-import { Alert } from "react-native";
 
 const ManageVolunteersScreen = ({ navigation }: any) => {
   const {
@@ -84,14 +84,12 @@ const ManageVolunteersScreen = ({ navigation }: any) => {
           ListEmptyComponent={<EmptyState message="No volunteers found" />}
         />
       )}
-        />
-      )}
       <View style={{ flexDirection: "row", gap: SPACING.m, marginTop: SPACING.m }}>
         <View style={{ flex: 1 }}>
           <AppButton
             title="Export CSV"
             onPress={handleExport}
-            variant="outline"
+            variant="secondary"
           />
         </View>
         <View style={{ flex: 2 }}>

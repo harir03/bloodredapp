@@ -1,0 +1,2 @@
+﻿src/config/firebase.ts(6,3): error TS2305: Module '"firebase/auth"' has no exported member 'getReactNativePersistence'.
+src/screens/shared/AddLeadScreen.tsx(180,18): error TS2551: Property 'body1' does not exist on type '{ h1: { fontFamily: string; fontSize: number; lineHeight: number; }; h2: { fontFamily: string; fontSize: number; lineHeight: number; }; h3: { fontFamily: string; fontSize: number; lineHeight: number; }; ... 5 more ...; label: { ...; }; }'. Did you mean 'body'?

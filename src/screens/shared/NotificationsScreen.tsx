@@ -1,11 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
-    FlatList,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { ListItemSkeleton } from "../../components/ui/SkeletonLoader";
 import { COLORS, FONTS, RADII, SPACING } from "../../constants/theme";
@@ -71,9 +71,9 @@ export default function NotificationsScreen({ navigation }: any) {
         onPress={() => {
           handleMarkRead(item.id);
           // Navigate to details if deepLink present
-          if (item.deepLink) {
+          if ((item as any).deepLink) {
             try {
-              const parts = item.deepLink.split("/");
+              const parts = (item as any).deepLink.split("/");
               if (parts[0] === "request" && parts[1]) {
                 navigation.navigate("BloodRequestDetails", {
                   requestId: parts[1],
@@ -81,7 +81,7 @@ export default function NotificationsScreen({ navigation }: any) {
               } else if (parts[0] === "task" && parts[1]) {
                 navigation.navigate("TaskDetails", { taskId: parts[1] });
               }
-            } catch (_) {}
+            } catch (_) { }
           }
         }}
         activeOpacity={0.75}

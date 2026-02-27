@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    View,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  View,
 } from "react-native";
 import AppButton from "../../components/ui/AppButton";
 import AppInput from "../../components/ui/AppInput";
@@ -36,8 +36,12 @@ const AddVolunteerScreen = ({ navigation }: any) => {
         area: "",
         city: city.trim(),
         status: "active",
-        tasks_completed: 0,
-        points: 0,
+        skills: [],
+        totalTasksCompleted: 0,
+        totalCampsAttended: 0,
+        badges: [],
+        attendanceLog: [],
+        joinedAt: new Date().toISOString(),
         joined_at: new Date().toISOString(),
       });
       navigation.goBack();

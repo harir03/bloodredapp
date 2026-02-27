@@ -1,12 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { KPICard } from "../../components/ui/KPICard";
 import { KPISkeleton } from "../../components/ui/SkeletonLoader";
@@ -116,7 +116,7 @@ export default function ReportsScreen({ navigation }: any) {
     {
       title: "Blood Requests",
       icon: "water",
-      color: COLORS.error,
+      color: COLORS.danger,
       items: [
         {
           label: "Total",
@@ -213,7 +213,7 @@ export default function ReportsScreen({ navigation }: any) {
                 label="Donors"
                 value={kpis.totalDonors}
                 icon="heart"
-                color={COLORS.error}
+                color={COLORS.danger}
                 compact
               />
             </View>

@@ -1,24 +1,23 @@
 
-import React from 'react';
-import { View, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import { Dimensions, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Animated, { useAnimatedStyle, withSpring } from 'react-native-reanimated';
-import { COLORS, SIZES } from '../../constants/theme';
+import { COLORS } from '../../constants/theme';
 
 const { width } = Dimensions.get('window');
 
-const TabBar = ({ state, descriptors, navigation }) => {
+const TabBar = ({ state, descriptors, navigation }: any) => {
   const totalWidth = width;
   const tabWidth = totalWidth / state.routes.length;
 
   return (
     <View style={[styles.tabBarContainer, { width: totalWidth }]}>
-      {state.routes.map((route, index) => {
+      {state.routes.map((route: any, index: number) => {
         const { options } = descriptors[route.key];
         const label = options.tabBarLabel !== undefined
           ? options.tabBarLabel
           : options.title !== undefined
-          ? options.title
-          : route.name;
+            ? options.title
+            : route.name;
 
         const isFocused = state.index === index;
 
@@ -42,9 +41,9 @@ const TabBar = ({ state, descriptors, navigation }) => {
         };
 
         const animatedStyle = useAnimatedStyle(() => {
-            return {
-              transform: [{ translateY: withSpring(isFocused ? -10 : 0) }],
-            };
+          return {
+            transform: [{ translateY: withSpring(isFocused ? -10 : 0) }],
+          };
         });
 
         return (
@@ -58,7 +57,7 @@ const TabBar = ({ state, descriptors, navigation }) => {
               onLongPress={onLongPress}
               style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
             >
-                <View style={{ width: 24, height: 24}}>{options.tabBarIcon({ focused: isFocused, color: isFocused ? COLORS.primary : COLORS.text_muted, size: 24 })}</View>
+              <View style={{ width: 24, height: 24 }}>{options.tabBarIcon({ focused: isFocused, color: isFocused ? COLORS.primary : COLORS.text_muted, size: 24 })}</View>
             </TouchableOpacity>
           </Animated.View>
         );

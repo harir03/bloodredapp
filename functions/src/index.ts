@@ -63,7 +63,8 @@ export const onCriticalBloodRequest = onDocumentCreated(
         const messages = [];
 
         // 3. Process each donor
-        for (const donor of matchingDonors) {
+        for (const _donor of matchingDonors) {
+            const donor = _donor as any;
             let pushMessage = `Urgent: ${bloodGroupReq} blood needed for ${patientName} at ${hospital} in ${city}.`;
 
             // Dynamic AI Hook for hyper-personalized messaging

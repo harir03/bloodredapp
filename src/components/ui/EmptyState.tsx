@@ -1,17 +1,17 @@
 
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { COLORS, FONTS, SPACING } from '../../constants/theme';
 
 interface EmptyStateProps {
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
   message: string;
 }
 
 const EmptyState: React.FC<EmptyStateProps> = ({ icon, message }) => {
   return (
     <View style={styles.container}>
-      <View style={styles.iconContainer}>{icon}</View>
+      {icon && <View style={styles.iconContainer}>{icon}</View>}
       <Text style={styles.message}>{message}</Text>
     </View>
   );

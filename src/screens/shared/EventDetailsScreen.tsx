@@ -12,7 +12,7 @@ import { COLORS, FONTS, RADII, SPACING } from "../../constants/theme";
 import { eventService } from "../../services/eventService";
 import { volunteerService } from "../../services/volunteerService";
 import { useAuth } from "../../stores/AuthProvider";
-import type { BloodEvent, Volunteer, Lead } from "../../types/database";
+import type { BloodEvent, Lead, Volunteer } from "../../types/database";
 import { exportToCSV } from "../../utils/exportUtils";
 
 export default function EventDetailsScreen({ route, navigation }: any) {
@@ -27,12 +27,16 @@ export default function EventDetailsScreen({ route, navigation }: any) {
         if (!eventId) return;
         setLoading(true);
         try {
-            const eData = await eventService.getById(eventId);
-            if (eData) {
+            const res = await eventService.getById(eventId);
+            if (res.data) {
+                const eData = res.data;
                 setEvent(eData);
                 if (eData.volunteersAssigned && eData.volunteersAssigned.length > 0) {
                     const vs = await Promise.all(
-                        eData.volunteersAssigned.map((vId) => volunteerService.getById(vId))
+                        eData.volunteersAssigned.map(async (vId: string) => {
+                            const vRes = await volunteerService.getById(vId);
+                            return vRes.data;
+                        })
                     );
                     setAssignedVols(vs.filter(Boolean) as Volunteer[]);
                 } else {
@@ -133,6 +137,15 @@ export default function EventDetailsScreen({ route, navigation }: any) {
                     </View>
                 ) : (
                     assignedVols.map((v) => (
+                        <View key={v.id} style={styles.volCard}>
+                            <View style={styles.avatarCircle}>
+                                <Ionicons name="person" size={20} color={COLORS.primary} />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.volName}>{v.name}</Text>
+                                <Text style={styles.volMeta}>{v.phone || "No phone"} • {v.city || "Unknown"}</Text>
+                            </View>
+                        </View>
                     ))
                 )}
 
@@ -235,7 +248,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         marginRight: 12,
     },
-    volName: { ...FONTS.body1, color: COLORS.text_primary, fontWeight: "600" },
+    volName: { ...FONTS.body, color: COLORS.text_primary, fontWeight: "600" },
     volMeta: { ...FONTS.caption, color: COLORS.text_muted },
     empty: { padding: SPACING.l, alignItems: "center" },
     emptyText: { ...FONTS.body2, color: COLORS.text_muted, fontStyle: "italic" }

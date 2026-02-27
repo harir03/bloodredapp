@@ -1,13 +1,13 @@
 
 import React from 'react';
 import {
-  View,
+  StyleProp,
   StyleSheet,
   TouchableOpacity,
+  View,
   ViewStyle,
-  StyleProp,
 } from 'react-native';
-import { COLORS, SIZES, SHADOWS } from '../../constants/theme';
+import { COLORS, SHADOWS, SIZES } from '../../constants/theme';
 
 interface AppCardProps {
   children: React.ReactNode;
@@ -22,11 +22,11 @@ const AppCard: React.FC<AppCardProps> = ({
   onPress,
   isPressable = false,
 }) => {
-  const CardComponent = isPressable ? TouchableOpacity : View;
+  const CardComponent = (isPressable ? TouchableOpacity : View) as any;
 
   return (
     <CardComponent
-      style={[styles.card, SHADOWS.medium, style]}
+      style={[styles.card, SHADOWS?.medium, style]}
       onPress={onPress}
       activeOpacity={0.8}
     >

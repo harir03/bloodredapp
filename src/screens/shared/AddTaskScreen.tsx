@@ -18,7 +18,7 @@ import { taskService, volunteerService } from "../../services";
 import { useAuth } from "../../stores/AuthProvider";
 import { Volunteer } from "../../types/database";
 
-const PRIORITY_OPTIONS = ["low", "medium", "high", "urgent"] as const;
+const PRIORITY_OPTIONS = ["low", "medium", "high"] as const;
 const TYPE_OPTIONS = [
   "blood_delivery",
   "donor_visit",
@@ -80,7 +80,7 @@ const AddTaskScreen = ({ route, navigation }: any) => {
         title: title.trim(),
         description: description.trim() || undefined,
         type,
-        status: "assigned",
+        status: "pending",
         priority,
         assignedTo: selectedVolunteerId,    // camelCase
         assigned_to: selectedVolunteerId,   // snake_case compat
@@ -90,6 +90,7 @@ const AddTaskScreen = ({ route, navigation }: any) => {
         city: city.trim() || undefined,
         due_date: dueDate.trim() || undefined,
         points_reward: 10,
+        createdAt: new Date().toISOString(),
       });
       if (error) {
         Alert.alert("Error", error);

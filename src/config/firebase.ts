@@ -3,9 +3,10 @@ import { getApps, initializeApp } from "firebase/app";
 import {
   Auth,
   getAuth,
-  getReactNativePersistence,
   initializeAuth,
 } from "firebase/auth";
+// @ts-ignore
+import { getReactNativePersistence } from "firebase/auth";
 // If the above still fails in lint, it's a known false positive in many Expo setups,
 // but the runtime execution will be fine.
 import { initializeFirestore } from "firebase/firestore";
