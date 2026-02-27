@@ -9,4 +9,5 @@ export const firebaseConfig = {
   messagingSenderId: "712685918523",
   appId: "1:712685918523:web:1239a44440d2c4a0db7f1e",
   measurementId: "G-W8F32W27HZ",
+  geminiApiKey: "", // Add your Gemini API Key here for AI notifications
 };

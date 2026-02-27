@@ -5,6 +5,7 @@ import "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import RootNavigator from "../src/navigation/RootNavigator";
 import { AuthProvider } from "../src/stores/AuthProvider";
+import { NotificationProvider } from "../src/stores/NotificationProvider";
 import { ToastProvider } from "../src/stores/ToastProvider";
 
 export default function RootLayout() {
@@ -12,10 +13,12 @@ export default function RootLayout() {
     <GestureHandlerRootView style={styles.container}>
       <SafeAreaProvider>
         <AuthProvider>
-          <ToastProvider>
-            <RootNavigator />
-            <StatusBar style="light" />
-          </ToastProvider>
+          <NotificationProvider>
+            <ToastProvider>
+              <RootNavigator />
+              <StatusBar style="light" />
+            </ToastProvider>
+          </NotificationProvider>
         </AuthProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
