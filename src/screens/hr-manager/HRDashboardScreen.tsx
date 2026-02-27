@@ -1,12 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { KPICard } from "../../components/ui/KPICard";
 import { KPISkeleton } from "../../components/ui/SkeletonLoader";
@@ -36,17 +36,19 @@ export default function HRDashboardScreen({ navigation }: any) {
     if (isRefresh) setRefreshing(true);
     else setLoading(true);
     try {
-      const [total, active, leave, inactive] = await Promise.all([
+      // staffService.count() returns { count: number, error: string | null }
+      // We must destructure .count from the result — NOT use the object directly
+      const [totalRes, activeRes, leaveRes, inactiveRes] = await Promise.all([
         staffService.count(),
         staffService.count({ status: "active" }),
         staffService.count({ status: "on_leave" }),
         staffService.count({ status: "inactive" }),
       ]);
       setKpi({
-        totalStaff: total ?? 0,
-        onDuty: active ?? 0,
-        onLeave: leave ?? 0,
-        newApplicants: inactive ?? 0,
+        totalStaff: totalRes.count ?? 0,
+        onDuty: activeRes.count ?? 0,
+        onLeave: leaveRes.count ?? 0,
+        newApplicants: inactiveRes.count ?? 0,
       });
     } catch (e) {
       console.log("HR KPI error:", e);
@@ -97,7 +99,9 @@ export default function HRDashboardScreen({ navigation }: any) {
       {loading ? (
         <View style={styles.kpiGrid}>
           {[1, 2, 3, 4].map((i) => (
-            <KPISkeleton key={i} />
+            <View key={i} style={{ flex: 1, minWidth: 120 }}>
+              <KPISkeleton />
+            </View>
           ))}
         </View>
       ) : (
@@ -107,7 +111,7 @@ export default function HRDashboardScreen({ navigation }: any) {
             value={kpi.totalStaff}
             icon="people"
             color={COLORS.primary}
-            onPress={() => navigation.navigate("ManageStaff")}
+            onPress={() => navigation.navigate("Staff")}
           />
           <KPICard
             label="On Duty"
@@ -136,7 +140,7 @@ export default function HRDashboardScreen({ navigation }: any) {
           {
             icon: "people-outline",
             label: "Manage Staff",
-            route: "ManageStaff",
+            route: "Staff",
           },
           { icon: "person-add-outline", label: "Add Staff", route: "AddStaff" },
           {
@@ -173,7 +177,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "flex-start",
     paddingHorizontal: SPACING.l,
-    paddingTop: SPACING.xxl,
+    paddingTop: SPACING.xxxxl + 8,
     paddingBottom: SPACING.m,
   },
   greeting: { ...FONTS.body2, color: COLORS.text_muted },

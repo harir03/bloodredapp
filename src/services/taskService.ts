@@ -55,14 +55,26 @@ export const taskService = {
     }
   },
 
-  getByVolunteer: (
+  getByVolunteer: async (
     volunteerId: string,
     options?: QueryOptions,
-  ): Promise<ListResult<Task>> =>
-    fetchAll<Task>(TABLE, {
+  ): Promise<ListResult<Task>> => {
+    // Query both field name variants to handle legacy (snake_case) and new (camelCase) docs
+    const { data: camel } = await fetchAll<Task>(TABLE, {
+      ...options,
+      filters: { ...options?.filters, assignedTo: volunteerId },
+    });
+    const { data: snake } = await fetchAll<Task>(TABLE, {
       ...options,
       filters: { ...options?.filters, assigned_to: volunteerId },
-    }),
+    });
+    // Merge-deduplicate
+    const combined = [...camel];
+    snake.forEach(s => {
+      if (!combined.find(c => c.id === s.id)) combined.push(s);
+    });
+    return { data: combined, count: combined.length, error: null };
+  },
 
   getPending: (options?: QueryOptions): Promise<ListResult<Task>> =>
     fetchAll<Task>(TABLE, {
@@ -70,14 +82,26 @@ export const taskService = {
       filters: { ...options?.filters, status: "pending" },
     }),
 
-  getByAssignedBy: (
+  getByAssignedBy: async (
     profileId: string,
     options?: QueryOptions,
-  ): Promise<ListResult<Task>> =>
-    fetchAll<Task>(TABLE, {
+  ): Promise<ListResult<Task>> => {
+    // Query both field name variants to handle legacy (snake_case) and new (camelCase) docs
+    const { data: camel } = await fetchAll<Task>(TABLE, {
+      ...options,
+      filters: { ...options?.filters, assignedBy: profileId },
+    });
+    const { data: snake } = await fetchAll<Task>(TABLE, {
       ...options,
       filters: { ...options?.filters, assigned_by: profileId },
-    }),
+    });
+    // Merge-deduplicate
+    const combined = [...camel];
+    snake.forEach(s => {
+      if (!combined.find(c => c.id === s.id)) combined.push(s);
+    });
+    return { data: combined, count: combined.length, error: null };
+  },
 
   getByRequestId: async (requestId: string): Promise<ListResult<Task>> => {
     const cleanId = requestId?.trim();

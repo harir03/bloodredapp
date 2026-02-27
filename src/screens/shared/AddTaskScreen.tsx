@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import AppButton from "../../components/ui/AppButton";
 import AppInput from "../../components/ui/AppInput";
@@ -60,7 +60,7 @@ const AddTaskScreen = ({ route, navigation }: any) => {
       volunteerService
         .getAll({ limit: 100, filters: { status: "active" } })
         .then(({ data }) => setVolunteers(data))
-        .catch(() => {})
+        .catch(() => { })
         .finally(() => setVolunteersLoading(false));
     }
   }, [preAssignedTo]);
@@ -82,8 +82,10 @@ const AddTaskScreen = ({ route, navigation }: any) => {
         type,
         status: "assigned",
         priority,
-        assigned_by: effectiveAssignedBy || undefined,
-        assigned_to: selectedVolunteerId,
+        assignedTo: selectedVolunteerId,    // camelCase
+        assigned_to: selectedVolunteerId,   // snake_case compat
+        assignedBy: effectiveAssignedBy || undefined,   // camelCase
+        assigned_by: effectiveAssignedBy || undefined,   // snake_case compat
         location: location.trim() || undefined,
         city: city.trim() || undefined,
         due_date: dueDate.trim() || undefined,
@@ -141,14 +143,14 @@ const AddTaskScreen = ({ route, navigation }: any) => {
                     style={[
                       styles.volunteerChip,
                       selectedVolunteerId === v.id &&
-                        styles.volunteerChipActive,
+                      styles.volunteerChipActive,
                     ]}
                   >
                     <Text
                       style={[
                         styles.volunteerChipName,
                         selectedVolunteerId === v.id &&
-                          styles.volunteerChipNameActive,
+                        styles.volunteerChipNameActive,
                       ]}
                     >
                       {v.name}
@@ -157,7 +159,7 @@ const AddTaskScreen = ({ route, navigation }: any) => {
                       style={[
                         styles.volunteerChipSub,
                         selectedVolunteerId === v.id &&
-                          styles.volunteerChipSubActive,
+                        styles.volunteerChipSubActive,
                       ]}
                     >
                       {v.blood_group} · {v.city}

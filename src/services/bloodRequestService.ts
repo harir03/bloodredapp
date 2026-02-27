@@ -181,8 +181,10 @@ export const bloodRequestService = {
         title: `Blood Donation: ${data?.patientName || 'Request'}`,
         description: `Assist with blood donation at ${data?.hospital || 'Hospital'} in ${data?.city || 'City'}.`,
         assignedTo: volunteerId,
+        assigned_to: volunteerId,       // dual-write for query compat
         assignedToName: volunteerName,
         assignedBy: by,
+        assigned_by: by,                // dual-write for query compat
         status: "pending",
         priority: data?.urgency === "critical" ? "high" : "medium",
         requestId: id,
