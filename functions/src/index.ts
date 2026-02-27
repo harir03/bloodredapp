@@ -1,3 +1,4 @@
+/*
 import { GoogleGenAI } from "@google/genai";
 import { Expo } from "expo-server-sdk";
 import * as admin from "firebase-admin";
@@ -116,3 +117,4 @@ export const onCriticalBloodRequest = onDocumentCreated(
         }
     }
 );
+*/
