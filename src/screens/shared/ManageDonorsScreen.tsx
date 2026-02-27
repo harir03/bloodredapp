@@ -14,6 +14,7 @@ import { BloodGroupBadge } from "../../components/ui/BloodGroupBadge";
 import { COLORS, FONTS, RADII, SPACING } from "../../constants/theme";
 import { donorService } from "../../services/donorService";
 import { Donor } from "../../types/database";
+import { exportToCSV } from "../../utils/exportUtils";
 
 const STATUS_COLOR: Record<string, string> = {
   available: COLORS.success,
@@ -85,6 +86,31 @@ export default function ManageDonorsScreen({ navigation }: any) {
     );
   };
 
+  const handleExport = async () => {
+    try {
+      if (filtered.length === 0) {
+        Alert.alert("No Data", "There are no donors to export based on current filters.");
+        return;
+      }
+
+      const payload = filtered.map(d => ({
+        ID: d.id,
+        Name: d.name,
+        Phone: d.phone,
+        Email: d.email || "",
+        BloodGroup: d.bloodGroup || d.blood_group || "Unknown",
+        City: d.city,
+        Status: d.status || "available",
+        TotalDonations: d.totalDonations || d.total_donations || 0,
+        LastDonation: d.lastDonationDate || d.last_donation_date || "Never"
+      }));
+
+      await exportToCSV("donors_export", payload);
+    } catch (e: any) {
+      Alert.alert("Export Error", e.message || "Failed to export data.");
+    }
+  };
+
   const renderItem = ({ item }: { item: Donor }) => {
     const bg = item.bloodGroup ?? item.blood_group ?? "O+";
     const status = item.status ?? "available";
@@ -149,13 +175,22 @@ export default function ManageDonorsScreen({ navigation }: any) {
             <Text style={styles.headerSub}>{filtered.length} registered</Text>
           )}
         </View>
-        <TouchableOpacity
-          style={styles.addBtn}
-          onPress={() => navigation.navigate("AddDonor")}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="add" size={22} color={COLORS.white} />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <TouchableOpacity
+            style={[styles.addBtn, { backgroundColor: COLORS.surface2 }]}
+            onPress={handleExport}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="download-outline" size={20} color={COLORS.text_primary} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.addBtn}
+            onPress={() => navigation.navigate("AddDonor")}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="add" size={22} color={COLORS.white} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Search */}

@@ -12,7 +12,8 @@ import { COLORS, FONTS, RADII, SPACING } from "../../constants/theme";
 import { eventService } from "../../services/eventService";
 import { volunteerService } from "../../services/volunteerService";
 import { useAuth } from "../../stores/AuthProvider";
-import type { BloodEvent, Volunteer } from "../../types/database";
+import type { BloodEvent, Volunteer, Lead } from "../../types/database";
+import { exportToCSV } from "../../utils/exportUtils";
 
 export default function EventDetailsScreen({ route, navigation }: any) {
     const { eventId } = route.params ?? {};
@@ -70,6 +71,18 @@ export default function EventDetailsScreen({ route, navigation }: any) {
         );
     }
 
+    const handleExportLeads = async () => {
+        try {
+            if (!event.leads || event.leads.length === 0) {
+                alert("No leads available to export.");
+                return;
+            }
+            await exportToCSV(`event_${eventId}_leads`, event.leads);
+        } catch (e: any) {
+            alert(e.message || "Failed to export leads.");
+        }
+    };
+
     const date = new Date(event.date);
 
     return (
@@ -120,13 +133,44 @@ export default function EventDetailsScreen({ route, navigation }: any) {
                     </View>
                 ) : (
                     assignedVols.map((v) => (
-                        <View key={v.id} style={styles.volCard}>
+                    ))
+                )}
+
+                <View style={[styles.sectionHeader, { marginTop: SPACING.xl }]}>
+                    <Text style={styles.sectionTitle}>Event Leads ({event.leads?.length || 0})</Text>
+                    {["admin", "city_manager", "hr_manager"].includes(profile?.role || "") && (
+                        <View style={{ flexDirection: 'row', gap: 8 }}>
+                            {(event.leads && event.leads.length > 0) && (
+                                <TouchableOpacity
+                                    style={styles.assignBtn}
+                                    onPress={handleExportLeads}
+                                >
+                                    <Text style={styles.assignBtnText}>Export</Text>
+                                </TouchableOpacity>
+                            )}
+                            <TouchableOpacity
+                                style={styles.assignBtn}
+                                onPress={() => navigation.navigate("AddLead", { eventId: event.id })}
+                            >
+                                <Text style={styles.assignBtnText}>+ Add</Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
+                </View>
+
+                {(!event.leads || event.leads.length === 0) ? (
+                    <View style={styles.empty}>
+                        <Text style={styles.emptyText}>No leads collected yet.</Text>
+                    </View>
+                ) : (
+                    event.leads.map((l: Lead) => (
+                        <View key={l.id} style={styles.volCard}>
                             <View style={styles.avatarCircle}>
-                                <Ionicons name="person" size={20} color={COLORS.primary} />
+                                <Ionicons name="bookmark" size={18} color={COLORS.primary} />
                             </View>
                             <View style={{ flex: 1 }}>
-                                <Text style={styles.volName}>{v.name}</Text>
-                                <Text style={styles.volMeta}>{v.phone || "No phone"} • {v.city || "Unknown"}</Text>
+                                <Text style={styles.volName}>{l.name}</Text>
+                                <Text style={styles.volMeta}>{l.phone} • {l.bloodGroup}</Text>
                             </View>
                         </View>
                     ))

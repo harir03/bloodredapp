@@ -1,32 +1,22 @@
-# Tier 1 Features Implementation Plan
+# Tier 2 Features Implementation Plan
 
-## Overview
-We will implement the Tier 1 critical missing features for the BloodConnect Operations Management System. 
-Since I am a single agent here in this terminal environment (native subagent limits apply to just the browser), I will execute these tasks sequentially as the main orchestrator, strictly applying the newly defined `instructions.md` testing protocols after each feature.
+## 5. Offline Support / Data Caching
+- [ ] Initialize Firebase offline persistence for Firestore.
+- [ ] Utilize AsyncStorage to locally cache critical read-only tables (like user profile and basic lists) to ensure the UI doesn't crash without internet.
 
-## TODOs
+## 6. Data Export / Reporting (CSV Export)
+- [ ] Implement a utility in `src/utils/exportUtils.ts` to convert JSON arrays to CSV strings.
+- [ ] Incorporate `expo-file-system` and `expo-sharing` to generate a CSV file and open the native share sheet.
+- [ ] Add "Export to CSV" buttons on `ManageDonorsScreen`, `ManageVolunteersScreen`, and `LeaderboardScreen`.
 
-### 1. Response Time Tracking (Helpline)
-- [ ] Add `resolvedAt` and `responseStatus` fields to the Blood Request creation/update handlers.
-- [ ] In `HelplineDashboard`, show metrics for "Average Response Time" (calculating the difference between `createdAt` and `resolvedAt`).
-- [ ] UI Consistency Audit & Testing procedure according to `instructions.md`.
+## 7. Data Privacy & Secure Handling Rules
+- [ ] Setup strict `firestore.rules` preventing unauthorized bulk downloads.
+- [ ] Add role-based field restrictions (only Admin/Helpline can query `donors`).
 
-### 2. Volunteer Allocation for Events (Camps/Outreach)
-- [ ] Update `Camp` interface in `types` to hold an array of assigned volunteer IDs (`assignedVolunteers: string[]`).
-- [ ] In `CampDetailsScreen` or `CampCard`, allow City Managers to add/remove volunteers.
-- [ ] UI Consistency Audit & Testing procedure according to `instructions.md`.
-
-### 3. Record of Past Donations (Donor History)
-- [ ] Update the `Donor` interface to include an array of past donation timestamps (`donationHistory: Date[]`).
-- [ ] Add a "Log Donation" button to the `DonorProfile` or `DonorCard` for Helpline/Admins.
-- [ ] Display the "Last Donated At" status, ensuring warning labels are shown if within 3 months.
-- [ ] UI Consistency Audit & Testing procedure according to `instructions.md`.
-
-### 4. Real-Time Push Notifications (Optional Setup)
-- [ ] Setup `expo-notifications` logic to ask for permissions on login.
-- [ ] *Note: We may choose to mock this or implement a basic internal Notification center UI if Push requires external Apple/Google certificates.*
+## 8. Lead Tracking from Awareness Sessions
+- [ ] Update `Camp` / `BloodEvent` schema to include `leadsCollected` tracking.
+- [ ] Create a `Lead` interface capturing prospective donors before they fully register.
+- [ ] In the Event Details screen, add a section to Add/View leads.
 
 ---
-
-## Review
-- After each task, a comprehensive scoring table (0-100) will be provided according to the Confidence Score rules in `instructions.md`.
+Review process follows `instructions.md` Confidence Scoring.

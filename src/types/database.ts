@@ -186,6 +186,7 @@ export interface BloodEvent {
   expectedDonors: number;
   actualDonors: number;
   leadsCollected: number;
+  leads?: Lead[];
   reportSummary?: string;
   createdAt: string;
   // Legacy compat
@@ -196,6 +197,17 @@ export interface BloodEvent {
   registered_count?: number;
   created_at?: string;
   updated_at?: string;
+}
+
+export interface Lead {
+  id: string;
+  name: string;
+  phone: string;
+  bloodGroup: BloodGroup | string;
+  city: string;
+  createdAt: string;
+  notes?: string;
+  convertedToDonor?: boolean;
 }
 
 // /tasks/{taskId}

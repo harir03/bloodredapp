@@ -59,6 +59,28 @@ export const eventService = {
       await updateDoc(ref, { volunteersAssigned: [...existing, volunteerId] });
     }
   },
+
+  addLead: async (eventId: string, lead: any): Promise<void> => {
+    const ref = doc(db, TABLE, eventId);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) throw new Error("Event not found");
+    const data = snap.data() as BloodEvent;
+
+    const existingLeads = data.leads || [];
+    const currentCount = data.leadsCollected || 0;
+
+    // Auto-generate id for array storage internally
+    const newLead = {
+      ...lead,
+      id: Math.random().toString(36).substring(7),
+      createdAt: new Date().toISOString()
+    };
+
+    await updateDoc(ref, {
+      leads: [...existingLeads, newLead],
+      leadsCollected: currentCount + 1
+    });
+  },
 };
 
 export default eventService;

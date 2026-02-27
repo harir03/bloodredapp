@@ -114,6 +114,7 @@ const AppStack = () => {
       <Stack.Screen name="AddEvent" component={AddEventScreen} />
       <Stack.Screen name="EventDetails" component={EventDetailsScreen} />
       <Stack.Screen name="AssignVolunteerToEvent" component={AssignVolunteerToEventScreen} />
+      <Stack.Screen name="AddLead" component={AddLeadScreen} />
       <Stack.Screen name="Reports" component={ReportsScreen} />
     </Stack.Navigator>
   );
