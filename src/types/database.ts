@@ -32,6 +32,7 @@ export interface User {
   createdAt: string;
   lastActive?: string;
   fcmToken?: string;
+  expoPushToken?: string;
   points: number;
   badges: string[];
 }
@@ -50,6 +51,7 @@ export type Profile = {
   updated_at: string;
   city?: string;
   fcmToken?: string;
+  expoPushToken?: string;
   points?: number;
   badges?: string[];
 };

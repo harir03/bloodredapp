@@ -7,9 +7,10 @@ import {
   updateProfile,
   User,
 } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { db, firebaseAuth } from "../config/firebase";
+import { usePushNotifications } from "../hooks/usePushNotifications";
 import type { Profile, UserRole } from "../types/database";
 
 // Cache key for persisting profile data locally
@@ -59,6 +60,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [firebaseUser, setFirebaseUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { expoPushToken } = usePushNotifications();
+
+  // Sync push token to Firestore if it changes or is missing
+  useEffect(() => {
+    if (
+      firebaseUser &&
+      profile &&
+      expoPushToken &&
+      profile.expoPushToken !== expoPushToken
+    ) {
+      updateDoc(doc(db, "profiles", firebaseUser.uid), {
+        expoPushToken,
+      })
+        .then(() => {
+          setProfile((prev) => (prev ? { ...prev, expoPushToken } : null));
+          console.log("Push token synced to profile successfully.");
+        })
+        .catch((e) => console.log("Failed to sync push token:", e));
+    }
+  }, [firebaseUser, profile, expoPushToken]);
 
   // Listen for Firebase auth state changes
   useEffect(() => {

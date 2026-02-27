@@ -1,5 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
+import * as Sharing from "expo-sharing";
+import { useRef } from "react";
 import { Alert, Share, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { captureRef } from "react-native-view-shot";
 import { COLORS, FONTS, SPACING } from "../../constants/theme";
 
 interface BadgeItemProps {
@@ -17,20 +20,43 @@ export const BadgeItem = ({
     isLocked = false,
     minPoints,
 }: BadgeItemProps) => {
+    const viewRef = useRef(null);
+
     const handleShare = async () => {
         try {
             const message = `I just earned the ${label} badge ${emoji} on BloodConnect! 🩸 Join me in making a difference. #BloodConnect #Achievement #Volunteer`;
-            await Share.share({
-                message,
-                title: `My BloodConnect Achievement: ${label}`,
-            });
+
+            let imageUri = null;
+            try {
+                if (viewRef.current) {
+                    imageUri = await captureRef(viewRef, {
+                        format: "png",
+                        quality: 1,
+                    });
+                }
+            } catch (e) {
+                console.log("Failed to capture badge", e);
+            }
+
+            if (imageUri && await Sharing.isAvailableAsync()) {
+                await Sharing.shareAsync(imageUri, {
+                    dialogTitle: `Share ${label} Badge`,
+                    mimeType: "image/png",
+                    UTI: "public.png",
+                });
+            } else {
+                await Share.share({
+                    message,
+                    title: `My BloodConnect Achievement: ${label}`,
+                });
+            }
         } catch (error: any) {
             Alert.alert("Sharing Error", error.message);
         }
     };
 
     return (
-        <View style={[styles.container, isLocked && styles.containerLocked]}>
+        <View collapsable={false} ref={viewRef} style={[styles.container, isLocked && styles.containerLocked]}>
             <View style={[styles.iconWrap, isLocked && styles.iconWrapLocked]}>
                 {isLocked ? (
                     <Ionicons name="lock-closed" size={24} color={COLORS.text_muted} />
