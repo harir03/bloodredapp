@@ -33,7 +33,9 @@ import AddBloodRequestScreen from "../screens/shared/AddBloodRequestScreen";
 import AddEventScreen from "../screens/shared/AddEventScreen";
 import AllBadgesScreen from "../screens/shared/AllBadgesScreen";
 import AssignVolunteerScreen from "../screens/shared/AssignVolunteerScreen";
+import AssignVolunteerToEventScreen from "../screens/shared/AssignVolunteerToEventScreen";
 import BloodRequestDetailsScreen from "../screens/shared/BloodRequestDetailsScreen";
+import EventDetailsScreen from "../screens/shared/EventDetailsScreen";
 import EventsScreen from "../screens/shared/EventsScreen";
 import LeaderboardScreen from "../screens/shared/LeaderboardScreen";
 import ManageBloodRequestsScreen from "../screens/shared/ManageBloodRequestsScreen";
@@ -110,6 +112,8 @@ const AppStack = () => {
       <Stack.Screen name="AllBadges" component={AllBadgesScreen} />
       <Stack.Screen name="Events" component={EventsScreen} />
       <Stack.Screen name="AddEvent" component={AddEventScreen} />
+      <Stack.Screen name="EventDetails" component={EventDetailsScreen} />
+      <Stack.Screen name="AssignVolunteerToEvent" component={AssignVolunteerToEventScreen} />
       <Stack.Screen name="Reports" component={ReportsScreen} />
     </Stack.Navigator>
   );

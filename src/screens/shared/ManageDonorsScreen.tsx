@@ -1,13 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
-    FlatList,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
 import { BloodGroupBadge } from "../../components/ui/BloodGroupBadge";
 import { COLORS, FONTS, RADII, SPACING } from "../../constants/theme";
@@ -49,18 +50,40 @@ export default function ManageDonorsScreen({ navigation }: any) {
     setFiltered(
       q
         ? donors.filter(
-            (d) =>
-              d.name.toLowerCase().includes(q) ||
-              d.phone.includes(q) ||
-              d.city?.toLowerCase().includes(q) ||
-              (d.bloodGroup ?? d.blood_group ?? "")
-                .toString()
-                .toLowerCase()
-                .includes(q),
-          )
-        : donors,
+          (d) =>
+            d.name.toLowerCase().includes(q) ||
+            d.phone.includes(q) ||
+            d.city?.toLowerCase().includes(q) ||
+            (d.bloodGroup ?? d.blood_group ?? "")
+              .toString()
+              .toLowerCase()
+              .includes(q)
+        )
+        : donors
     );
   }, [query, donors]);
+
+  const handleLogDonation = (donor: Donor) => {
+    Alert.alert(
+      "Log Donation",
+      `Did ${donor.name} donate blood recently?\nLogging this will record 1 unit and mark them as deferred.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Log Donation",
+          onPress: async () => {
+            try {
+              await donorService.logDonation(donor.id, 1, "Direct Walk-in");
+              Alert.alert("Success", "Donation logged. Donor is now deferred.");
+              fetchDonors(); // refresh the list
+            } catch (e) {
+              Alert.alert("Error", "Could not log donation.");
+            }
+          }
+        }
+      ]
+    );
+  };
 
   const renderItem = ({ item }: { item: Donor }) => {
     const bg = item.bloodGroup ?? item.blood_group ?? "O+";
@@ -68,7 +91,11 @@ export default function ManageDonorsScreen({ navigation }: any) {
     const donations = item.totalDonations ?? item.total_donations ?? 0;
 
     return (
-      <TouchableOpacity style={styles.card} activeOpacity={0.75}>
+      <TouchableOpacity
+        style={styles.card}
+        activeOpacity={0.75}
+        onPress={() => handleLogDonation(item)}
+      >
         {/* Left: blood group badge */}
         <View style={styles.badgeCol}>
           <BloodGroupBadge group={bg as any} size="md" />

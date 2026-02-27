@@ -124,9 +124,16 @@ export const bloodRequestService = {
     const snap = await getDoc(ref);
     const existing = snap.data();
     const responseLog: ResponseLogEntry[] = existing?.responseLog ?? [];
+
+    // [ARIA] Automatically track when the request was ultimately resolved
+    const extraUpdates: Partial<BloodRequest> = { ...(extra ?? {}) };
+    if (status === "completed" || status === "cancelled") {
+      extraUpdates.resolvedAt = new Date().toISOString();
+    }
+
     await updateDoc(ref, sanitizeFirestoreData({
       status,
-      ...(extra ?? {}),
+      ...extraUpdates,
       responseLog: [...responseLog, logEntry],
     }));
 
@@ -223,14 +230,26 @@ export const bloodRequestService = {
     pending: number;
     critical: number;
     resolved: number;
+    averageResponseHours: number;
   }> {
     const all = await getDocs(collection(db, COL));
     const items = all.docs.map((d) => d.data() as BloodRequest);
+
+    // [ARIA] Calculate average response time for completed requests
+    const resolvedItems = items.filter((r) => r.status === "completed" && r.createdAt && r.resolvedAt);
+    let totalHours = 0;
+    resolvedItems.forEach(r => {
+      const created = new Date(r.createdAt).getTime();
+      const resolved = new Date(r.resolvedAt!).getTime();
+      totalHours += (resolved - created) / (1000 * 60 * 60);
+    });
+
     return {
       total: items.length,
       pending: items.filter((r) => r.status === "pending").length,
       critical: items.filter((r) => r.urgency === "critical").length,
       resolved: items.filter((r) => r.status === "completed").length,
+      averageResponseHours: resolvedItems.length > 0 ? Number((totalHours / resolvedItems.length).toFixed(1)) : 0,
     };
   },
 };

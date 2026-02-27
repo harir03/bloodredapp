@@ -1,18 +1,18 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { KPICard } from "../../components/ui/KPICard";
 import { RequestCard } from "../../components/ui/RequestCard";
 import {
-    CardSkeleton,
-    KPISkeleton,
+  CardSkeleton,
+  KPISkeleton,
 } from "../../components/ui/SkeletonLoader";
 import { COLORS, FONTS, SPACING } from "../../constants/theme";
 import { bloodRequestService } from "../../services/bloodRequestService";
@@ -24,10 +24,10 @@ const KANBAN_COLS: {
   label: string;
   color: string;
 }[] = [
-  { key: "pending", label: "Pending", color: COLORS.warning },
-  { key: "in_progress", label: "In Progress", color: COLORS.info },
-  { key: "escalated", label: "Escalated", color: COLORS.escalated },
-];
+    { key: "pending", label: "Pending", color: COLORS.warning },
+    { key: "in_progress", label: "In Progress", color: COLORS.info },
+    { key: "escalated", label: "Escalated", color: COLORS.escalated },
+  ];
 
 export default function HelplineDashboardScreen({ navigation }: any) {
   const { profile } = useAuth();
@@ -35,12 +35,15 @@ export default function HelplineDashboardScreen({ navigation }: any) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeCol, setActiveCol] = useState<BloodRequest["status"]>("pending");
+  const [stats, setStats] = useState({ averageResponseHours: 0 });
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const data = await bloodRequestService.getPending();
+      const recentStats = await bloodRequestService.getRecentStats();
       setAllRequests(data);
+      setStats({ averageResponseHours: recentStats.averageResponseHours });
     } catch (e) {
       console.log("Helpline load error:", e);
     } finally {
@@ -130,6 +133,14 @@ export default function HelplineDashboardScreen({ navigation }: any) {
                   value={counts.escalated}
                   icon="alert-circle-outline"
                   color={COLORS.escalated}
+                />
+              </View>
+              <View style={[styles.kpiItem, { marginRight: 10, width: 160 }]}>
+                <KPICard
+                  label="Response SLA"
+                  value={`${stats.averageResponseHours}h`}
+                  icon="timer-outline"
+                  color={COLORS.success}
                 />
               </View>
             </>

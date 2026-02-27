@@ -1,12 +1,14 @@
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { db } from "../config/firebase";
 import type { Donor } from "../types/database";
 import type { ListResult, QueryOptions, ServiceResult } from "./baseService";
 import {
-    countRecords,
-    create,
-    fetchAll,
-    fetchById,
-    remove,
-    update,
+  countRecords,
+  create,
+  fetchAll,
+  fetchById,
+  remove,
+  update,
 } from "./baseService";
 
 const TABLE = "donors";
@@ -45,6 +47,32 @@ export const donorService = {
       ...options,
       filters: { ...options?.filters, is_eligible: true },
     }),
+
+  logDonation: async (id: string, units: number, camp?: string): Promise<void> => {
+    const ref = doc(db, TABLE, id);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) throw new Error("Donor not found");
+    const data = snap.data() as Donor;
+
+    // [ARIA] Track granular donation history for strict legally compliant intervals (usually 3 months)
+    const newEntry = {
+      date: new Date().toISOString(),
+      camp,
+      units
+    };
+
+    const h = data.donationHistory || [];
+    const prevTotal = data.totalDonations || data.total_donations || 0;
+
+    await updateDoc(ref, {
+      donationHistory: [...h, newEntry],
+      lastDonationDate: newEntry.date,
+      last_donation_date: newEntry.date,
+      totalDonations: prevTotal + 1,
+      total_donations: prevTotal + 1,
+      status: "deferred" // Prevents call algorithms from pinging them
+    });
+  }
 };
 
 export default donorService;
