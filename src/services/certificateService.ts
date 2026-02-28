@@ -2,7 +2,6 @@ import {
     addDoc,
     collection,
     getDocs,
-    orderBy,
     query,
     where
 } from "firebase/firestore";
@@ -42,13 +41,14 @@ export const certificateService = {
         try {
             const q = query(
                 collection(db, COL),
-                where("userId", "==", userId),
-                orderBy("issuedAt", "desc")
+                where("userId", "==", userId)
             );
             const snap = await getDocs(q);
-            return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Certificate);
+            const results = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Certificate);
+            // Sort locally to avoid requiring a composite index in Firestore
+            return results.sort((a, b) => new Date(b.issuedAt).getTime() - new Date(a.issuedAt).getTime());
         } catch (e) {
-            console.log("Error fetching certificates:", e);
+            console.error("Error fetching certificates:", e);
             return [];
         }
     },
