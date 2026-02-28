@@ -86,6 +86,13 @@ The application relies heavily on dynamic, **Role-Based Access Control (RBAC)**.
 |:---:|:---:|
 | ![](assets/images/citymanager_dashboard.jpeg) | ![](assets/images/manage_staff.jpeg) |
 
+### 🎖️ Donor Certificate
+| Post-Donation Certificate |
+|:---:|
+| Dynamic React Native component that generates personalized certificates for donors after blood donation |
+| Displays donor name, blood group, donation date, quantity donated, total donations count, and unique certificate number |
+| Data fetched from Firebase Firestore - unique for every user based on their donation history |
+
 ## 🌟 Core Feature Domains
 
 1.  **Strict Role Hierarchies:** Unique UI dashboards for Donors (Public view), Volunteers (Task Execution view), and Admins/HR (Oversight & Management view).
