@@ -59,8 +59,8 @@ export default function VolunteerDashboardScreen({ navigation }: any) {
         const { data: snake } = await taskService.getAll({
           filters: { assigned_to: vol.id },
         } as any);
-        const combined = [...camel];
-        snake.forEach(s => { if (!combined.find(c => c.id === s.id)) combined.push(s); });
+        const combined = [...(camel || [])];
+        (snake || []).forEach((s: any) => { if (!combined.find(c => c.id === s.id)) combined.push(s); });
 
         setTasks(
           combined.filter((t: Task) => t.status !== "completed").slice(0, 5),
