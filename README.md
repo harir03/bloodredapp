@@ -222,3 +222,6 @@ eas build -p ios --profile production
 ```
 
 When contributing, please ensure all TypeScript interfaces are strictly adhered to, particularly when modifying shared `services` that interact with the Firestore instances, to prevent `undefined` crashes across platforms.
+
+**VIDEO**
+https://youtu.be/nXnvv3FiDk8
