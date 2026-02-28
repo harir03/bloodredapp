@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Animated,
@@ -9,12 +10,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KPICard } from "../../components/ui/KPICard";
+import { NotificationBell } from "../../components/ui/NotificationBell";
 import { RequestCard } from "../../components/ui/RequestCard";
 import { KPISkeleton } from "../../components/ui/SkeletonLoader";
+import { db } from "../../config/firebase";
 import { COLORS, FONTS, SPACING } from "../../constants/theme";
 import { bloodRequestService } from "../../services/bloodRequestService";
-import { donorService } from "../../services/donorService";
 import { volunteerService } from "../../services/volunteerService";
 import { useAuth } from "../../stores/AuthProvider";
 import { BloodRequest } from "../../types/database";
@@ -29,6 +32,7 @@ interface KPIData {
 }
 
 export default function AdminDashboardScreen({ navigation }: any) {
+  const insets = useSafeAreaInsets();
   const { profile } = useAuth();
   const [kpi, setKpi] = useState<KPIData | null>(null);
   const [liveRequests, setLiveRequests] = useState<BloodRequest[]>([]);
@@ -61,7 +65,7 @@ export default function AdminDashboardScreen({ navigation }: any) {
       const [reqStats, volSnap, donorSnap] = await Promise.all([
         bloodRequestService.getRecentStats(),
         volunteerService.getAll({ filters: { status: "active" } }),
-        donorService.getAll(),
+        getDocs(query(collection(db, "profiles"), where("role", "==", "donor"))),
       ]);
       setKpi({
         totalRequests: reqStats.total,
@@ -69,7 +73,7 @@ export default function AdminDashboardScreen({ navigation }: any) {
         critical: reqStats.critical,
         resolved: reqStats.resolved,
         volunteers: volSnap.data?.length ?? 0,
-        donors: donorSnap.data?.length ?? 0,
+        donors: donorSnap.size,
       });
     } catch (e) {
       console.log("KPI load error:", e);
@@ -101,28 +105,19 @@ export default function AdminDashboardScreen({ navigation }: any) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + SPACING.m }]}>
         <View>
           <Text style={styles.greeting}>
             {greeting()}, {profile?.name?.split(" ")[0]} 👋
           </Text>
           <Text style={styles.headerSub}>Admin Command Center</Text>
         </View>
-        <TouchableOpacity
-          style={styles.notifBtn}
-          onPress={() => navigation.navigate("Notifications")}
-        >
-          <Ionicons
-            name="notifications-outline"
-            size={22}
-            color={COLORS.text_primary}
-          />
-        </TouchableOpacity>
+        <NotificationBell onPress={() => navigation.navigate("Notifications")} />
       </View>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 100 }]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -230,6 +225,24 @@ export default function AdminDashboardScreen({ navigation }: any) {
               color: COLORS.warning,
               screen: "Reports",
             },
+            {
+              icon: "megaphone-outline" as const,
+              label: "AI Notify",
+              color: "#8B5CF6",
+              screen: "PushNotification",
+            },
+            {
+              icon: "ribbon-outline" as const,
+              label: "Issue Cert",
+              color: "#059669",
+              screen: "IssueCertificate",
+            },
+            {
+              icon: "water-outline" as const,
+              label: "Add Pouch",
+              color: COLORS.danger,
+              screen: "AddBloodPouch",
+            },
           ].map((a) => (
             <TouchableOpacity
               key={a.label}
@@ -298,7 +311,6 @@ export default function AdminDashboardScreen({ navigation }: any) {
           </TouchableOpacity>
         )}
 
-        <View style={{ height: 40 }} />
       </ScrollView>
     </View>
   );
@@ -311,7 +323,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: SPACING.xxl,
-    paddingTop: SPACING.xxxxl + 8,
     paddingBottom: SPACING.l,
   },
   greeting: { ...FONTS.h3, color: COLORS.text_primary },

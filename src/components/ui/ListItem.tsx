@@ -10,6 +10,7 @@ interface ListItemProps {
   rightTextColor?: string;
   icon?: string;
   iconColor?: string;
+  status?: string;
   onPress?: () => void;
   style?: object;
 }
@@ -21,6 +22,7 @@ const ListItem: React.FC<ListItemProps> = ({
   rightTextColor,
   icon,
   iconColor = COLORS.text_muted,
+  status,
   onPress,
   style,
 }) => {
@@ -43,6 +45,11 @@ const ListItem: React.FC<ListItemProps> = ({
         {subtitle && (
           <Text style={styles.subtitle} numberOfLines={1}>
             {subtitle}
+          </Text>
+        )}
+        {status && (
+          <Text style={styles.subtitle} numberOfLines={1}>
+            {status}
           </Text>
         )}
       </View>

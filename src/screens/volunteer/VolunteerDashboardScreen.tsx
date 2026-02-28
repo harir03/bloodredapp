@@ -9,7 +9,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KPICard } from "../../components/ui/KPICard";
+import { NotificationBell } from "../../components/ui/NotificationBell";
 import { CardSkeleton } from "../../components/ui/SkeletonLoader";
 import { StatusPill } from "../../components/ui/StatusPill";
 import { COLORS, FONTS, SPACING } from "../../constants/theme";
@@ -21,6 +23,7 @@ import { useAuth } from "../../stores/AuthProvider";
 import { BloodRequest, Task, Volunteer } from "../../types/database";
 
 export default function VolunteerDashboardScreen({ navigation }: any) {
+  const insets = useSafeAreaInsets();
   const { profile } = useAuth();
   const [volunteer, setVolunteer] = useState<Volunteer | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -105,7 +108,10 @@ export default function VolunteerDashboardScreen({ navigation }: any) {
     <View style={styles.container}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[
+          styles.scroll,
+          { paddingTop: insets.top + SPACING.l, paddingBottom: insets.bottom + 100 }
+        ]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -132,6 +138,7 @@ export default function VolunteerDashboardScreen({ navigation }: any) {
               <Text style={styles.pointsText}>{points} pts</Text>
             </View>
           </View>
+          <NotificationBell onPress={() => navigation.navigate("Notifications")} />
           <TouchableOpacity
             style={styles.profileBtn}
             onPress={() => navigation.navigate("Profile")}
@@ -175,7 +182,7 @@ export default function VolunteerDashboardScreen({ navigation }: any) {
               showsHorizontalScrollIndicator={false}
               style={{ marginBottom: SPACING.l }}
             >
-              {badges.map((b) => {
+              {badges.map((b: string) => {
                 const info = BADGES[b];
                 if (!info) return null;
                 return (
@@ -355,6 +362,12 @@ export default function VolunteerDashboardScreen({ navigation }: any) {
               color: COLORS.primary,
               screen: "Notifications",
             },
+            {
+              icon: "water-outline" as const,
+              label: "Add Pouch",
+              color: COLORS.danger,
+              screen: "AddBloodPouch",
+            },
           ].map((q) => (
             <TouchableOpacity
               key={q.label}
@@ -371,7 +384,6 @@ export default function VolunteerDashboardScreen({ navigation }: any) {
           ))}
         </View>
 
-        <View style={{ height: 40 }} />
       </ScrollView>
     </View>
   );
@@ -379,7 +391,7 @@ export default function VolunteerDashboardScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  scroll: { paddingHorizontal: SPACING.xxl, paddingTop: SPACING.xxxxl + 8 },
+  scroll: { paddingHorizontal: SPACING.xxl, paddingBottom: SPACING.xxl },
   heroCard: {
     backgroundColor: COLORS.surface,
     borderRadius: 16,

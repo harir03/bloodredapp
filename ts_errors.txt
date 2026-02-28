@@ -1,0 +1,47 @@
+app/modal.tsx(11,22): error TS2322: Type '{ children: Element; href: "/"; dismissTo: true; style: { marginTop: number; paddingVertical: number; }; }' is not assignable to type 'IntrinsicAttributes & LinkProps<"/"> & { children?: ReactNode; }'.
+  Property 'dismissTo' does not exist on type 'IntrinsicAttributes & LinkProps<"/"> & { children?: ReactNode; }'.
+components/external-link.tsx(5,66): error TS2314: Generic type 'Href' requires 1 type argument(s).
+components/hello-wave.tsx(10,9): error TS2353: Object literal may only specify known properties, and 'animationName' does not exist in type 'TextStyle | RecursiveArray<TextStyle | Falsy | RegisteredStyle<TextStyle>> | SharedValue<TextStyle> | ... 5 more ... | RecursiveArray<...>'.
+functions/src/index.ts(73,39): error TS2339: Property 'name' does not exist on type '{ id: string; }'.
+functions/src/index.ts(75,73): error TS2339: Property 'name' does not exist on type '{ id: string; }'.
+functions/src/index.ts(95,44): error TS2339: Property 'expoPushToken' does not exist on type '{ id: string; }'.
+functions/src/index.ts(97,31): error TS2339: Property 'expoPushToken' does not exist on type '{ id: string; }'.
+src/components/ui/AppCard.tsx(28,6): error TS2604: JSX element type 'CardComponent' does not have any construct or call signatures.
+src/components/ui/TabBar.tsx(9,19): error TS7031: Binding element 'state' implicitly has an 'any' type.
+src/components/ui/TabBar.tsx(9,26): error TS7031: Binding element 'descriptors' implicitly has an 'any' type.
+src/components/ui/TabBar.tsx(9,39): error TS7031: Binding element 'navigation' implicitly has an 'any' type.
+src/components/ui/TabBar.tsx(15,26): error TS7006: Parameter 'route' implicitly has an 'any' type.
+src/components/ui/TabBar.tsx(15,33): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/config/firebase.ts(6,3): error TS2305: Module '"firebase/auth"' has no exported member 'getReactNativePersistence'.
+src/screens/city-manager/ManageVolunteersScreen.tsx(32,9): error TS2322: Type '{ title: string; subtitle: string; status: "active" | "inactive" | "on_leave"; onPress: () => any; }' is not assignable to type 'IntrinsicAttributes & ListItemProps'.
+  Property 'status' does not exist on type 'IntrinsicAttributes & ListItemProps'.
+src/screens/city-manager/ManageVolunteersScreen.tsx(84,32): error TS2741: Property 'icon' is missing in type '{ message: string; }' but required in type 'EmptyStateProps'.
+src/screens/city-manager/ManageVolunteersScreen.tsx(92,13): error TS2322: Type '"outline"' is not assignable to type '"danger" | "primary" | "secondary" | "ghost" | undefined'.
+src/screens/helpline/ManageCallsScreen.tsx(32,9): error TS2322: Type '{ title: string; subtitle: string; status: "pending" | "in_progress" | "escalated" | "resolved" | "closed"; onPress: () => any; }' is not assignable to type 'IntrinsicAttributes & ListItemProps'.
+  Property 'status' does not exist on type 'IntrinsicAttributes & ListItemProps'.
+src/screens/helpline/ManageCallsScreen.tsx(60,32): error TS2741: Property 'icon' is missing in type '{ message: string; }' but required in type 'EmptyStateProps'.
+src/screens/hr-manager/ManageStaffScreen.tsx(30,9): error TS2322: Type '{ title: string; subtitle: UserRole; status: "active" | "inactive" | "on_leave"; onPress: () => any; }' is not assignable to type 'IntrinsicAttributes & ListItemProps'.
+  Property 'status' does not exist on type 'IntrinsicAttributes & ListItemProps'.
+src/screens/hr-manager/ManageStaffScreen.tsx(60,32): error TS2741: Property 'icon' is missing in type '{ message: string; }' but required in type 'EmptyStateProps'.
+src/screens/shared/AddEventScreen.tsx(19,11): error TS2339: Property 'user' does not exist on type 'AuthContextType'.
+src/screens/shared/AddEventScreen.tsx(297,26): error TS2339: Property 'button' does not exist on type '{ h1: { fontFamily: string; fontSize: number; lineHeight: number; }; h2: { fontFamily: string; fontSize: number; lineHeight: number; }; h3: { fontFamily: string; fontSize: number; lineHeight: number; }; ... 5 more ...; label: { ...; }; }'.
+src/screens/shared/AddLeadScreen.tsx(180,18): error TS2551: Property 'body1' does not exist on type '{ h1: { fontFamily: string; fontSize: number; lineHeight: number; }; h2: { fontFamily: string; fontSize: number; lineHeight: number; }; h3: { fontFamily: string; fontSize: number; lineHeight: number; }; ... 5 more ...; label: { ...; }; }'. Did you mean 'body'?
+src/screens/shared/AddTaskScreen.tsx(83,9): error TS2322: Type '"assigned"' is not assignable to type '"pending" | "in_progress" | "completed" | "cancelled" | "overdue"'.
+src/screens/shared/AddTaskScreen.tsx(84,9): error TS2322: Type '"low" | "medium" | "high" | "urgent"' is not assignable to type '"low" | "medium" | "high"'.
+  Type '"urgent"' is not assignable to type '"low" | "medium" | "high"'.
+src/screens/shared/AddVolunteerScreen.tsx(39,9): error TS2561: Object literal may only specify known properties, but 'tasks_completed' does not exist in type 'Omit<Volunteer, "id" | "created_at" | "updated_at" | "points" | "tasks_completed">'. Did you mean to write 'totalTasksCompleted'?
+src/screens/shared/EventDetailsScreen.tsx(32,26): error TS2345: Argument of type 'ServiceResult<BloodEvent>' is not assignable to parameter of type 'SetStateAction<BloodEvent | null>'.
+src/screens/shared/EventDetailsScreen.tsx(33,27): error TS2339: Property 'volunteersAssigned' does not exist on type 'ServiceResult<BloodEvent>'.
+src/screens/shared/EventDetailsScreen.tsx(33,55): error TS2339: Property 'volunteersAssigned' does not exist on type 'ServiceResult<BloodEvent>'.
+src/screens/shared/EventDetailsScreen.tsx(35,31): error TS2339: Property 'volunteersAssigned' does not exist on type 'ServiceResult<BloodEvent>'.
+src/screens/shared/EventDetailsScreen.tsx(35,55): error TS7006: Parameter 'vId' implicitly has an 'any' type.
+src/screens/shared/EventDetailsScreen.tsx(247,25): error TS2551: Property 'body1' does not exist on type '{ h1: { fontFamily: string; fontSize: number; lineHeight: number; }; h2: { fontFamily: string; fontSize: number; lineHeight: number; }; h3: { fontFamily: string; fontSize: number; lineHeight: number; }; ... 5 more ...; label: { ...; }; }'. Did you mean 'body'?
+src/screens/shared/EventsScreen.tsx(65,52): error TS2339: Property 'capacity' does not exist on type 'BloodEvent'.
+src/screens/shared/EventsScreen.tsx(93,60): error TS2353: Object literal may only specify known properties, and 'orderDir' does not exist in type 'QueryOptions'.
+src/screens/shared/NotificationsScreen.tsx(74,20): error TS2339: Property 'deepLink' does not exist on type 'AppNotification'.
+src/screens/shared/NotificationsScreen.tsx(76,34): error TS2339: Property 'deepLink' does not exist on type 'AppNotification'.
+src/screens/shared/ReportsScreen.tsx(119,21): error TS2339: Property 'error' does not exist on type '{ primary: string; primary_dim: string; primary_glow: string; primary_subtle: string; background: string; surface: string; surface2: string; surface3: string; border: string; border_subtle: string; ... 41 more ...; light_text_muted: string; }'.
+src/screens/shared/ReportsScreen.tsx(216,31): error TS2339: Property 'error' does not exist on type '{ primary: string; primary_dim: string; primary_glow: string; primary_subtle: string; background: string; surface: string; surface2: string; surface3: string; border: string; border_subtle: string; ... 41 more ...; light_text_muted: string; }'.
+src/screens/volunteer/AssignedTasksScreen.tsx(48,9): error TS2322: Type '{ title: string; subtitle: string; status: "pending" | "in_progress" | "completed" | "cancelled" | "overdue"; onPress: () => any; }' is not assignable to type 'IntrinsicAttributes & ListItemProps'.
+  Property 'status' does not exist on type 'IntrinsicAttributes & ListItemProps'.
+src/screens/volunteer/AssignedTasksScreen.tsx(76,32): error TS2741: Property 'icon' is missing in type '{ message: string; }' but required in type 'EmptyStateProps'.

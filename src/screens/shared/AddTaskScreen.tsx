@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import AppButton from "../../components/ui/AppButton";
 import AppInput from "../../components/ui/AppInput";
@@ -18,7 +18,7 @@ import { taskService, volunteerService } from "../../services";
 import { useAuth } from "../../stores/AuthProvider";
 import { Volunteer } from "../../types/database";
 
-const PRIORITY_OPTIONS = ["low", "medium", "high", "urgent"] as const;
+const PRIORITY_OPTIONS = ["low", "medium", "high"] as const;
 const TYPE_OPTIONS = [
   "blood_delivery",
   "donor_visit",
@@ -60,7 +60,7 @@ const AddTaskScreen = ({ route, navigation }: any) => {
       volunteerService
         .getAll({ limit: 100, filters: { status: "active" } })
         .then(({ data }) => setVolunteers(data))
-        .catch(() => {})
+        .catch(() => { })
         .finally(() => setVolunteersLoading(false));
     }
   }, [preAssignedTo]);
@@ -80,14 +80,17 @@ const AddTaskScreen = ({ route, navigation }: any) => {
         title: title.trim(),
         description: description.trim() || undefined,
         type,
-        status: "assigned",
+        status: "pending",
         priority,
-        assigned_by: effectiveAssignedBy || undefined,
-        assigned_to: selectedVolunteerId,
+        assignedTo: selectedVolunteerId,    // camelCase
+        assigned_to: selectedVolunteerId,   // snake_case compat
+        assignedBy: effectiveAssignedBy || undefined,   // camelCase
+        assigned_by: effectiveAssignedBy || undefined,   // snake_case compat
         location: location.trim() || undefined,
         city: city.trim() || undefined,
         due_date: dueDate.trim() || undefined,
         points_reward: 10,
+        createdAt: new Date().toISOString(),
       });
       if (error) {
         Alert.alert("Error", error);
@@ -141,14 +144,14 @@ const AddTaskScreen = ({ route, navigation }: any) => {
                     style={[
                       styles.volunteerChip,
                       selectedVolunteerId === v.id &&
-                        styles.volunteerChipActive,
+                      styles.volunteerChipActive,
                     ]}
                   >
                     <Text
                       style={[
                         styles.volunteerChipName,
                         selectedVolunteerId === v.id &&
-                          styles.volunteerChipNameActive,
+                        styles.volunteerChipNameActive,
                       ]}
                     >
                       {v.name}
@@ -157,7 +160,7 @@ const AddTaskScreen = ({ route, navigation }: any) => {
                       style={[
                         styles.volunteerChipSub,
                         selectedVolunteerId === v.id &&
-                          styles.volunteerChipSubActive,
+                        styles.volunteerChipSubActive,
                       ]}
                     >
                       {v.blood_group} · {v.city}

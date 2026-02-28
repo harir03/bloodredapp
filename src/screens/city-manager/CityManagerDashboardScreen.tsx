@@ -1,14 +1,16 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KPICard } from "../../components/ui/KPICard";
+import { NotificationBell } from "../../components/ui/NotificationBell";
 import { KPISkeleton } from "../../components/ui/SkeletonLoader";
 import { COLORS, FONTS, RADII, SPACING } from "../../constants/theme";
 import { helplineService, taskService, volunteerService } from "../../services";
@@ -25,6 +27,7 @@ interface KPI {
 }
 
 export default function CityManagerDashboardScreen({ navigation }: any) {
+  const insets = useSafeAreaInsets();
   const { userName } = useAuth();
   const [kpi, setKpi] = useState<KPI>({
     volunteers: 0,
@@ -50,12 +53,12 @@ export default function CityManagerDashboardScreen({ navigation }: any) {
           bloodRequestService.getRecentStats(),
         ]);
       setKpi({
-        volunteers: volRes ?? 0,
-        activeCalls: activeCallRes ?? 0,
-        resolvedCalls: resolvedCallRes ?? 0,
-        pendingTasks: taskRes ?? 0,
-        pendingRequests: reqStats.pending,
-        criticalRequests: reqStats.critical,
+        volunteers: volRes.count ?? 0,
+        activeCalls: activeCallRes.count ?? 0,
+        resolvedCalls: resolvedCallRes.count ?? 0,
+        pendingTasks: taskRes.count ?? 0,
+        pendingRequests: reqStats.pending ?? 0,
+        criticalRequests: reqStats.critical ?? 0,
       });
     } catch (e) {
       console.log("CityManager KPI error:", e);
@@ -76,6 +79,7 @@ export default function CityManagerDashboardScreen({ navigation }: any) {
   return (
     <ScrollView
       style={styles.container}
+      contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
       showsVerticalScrollIndicator={false}
       refreshControl={
         <RefreshControl
@@ -86,23 +90,14 @@ export default function CityManagerDashboardScreen({ navigation }: any) {
       }
     >
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + SPACING.l }]}>
         <View>
           <Text style={styles.greeting}>{greeting},</Text>
           <Text style={styles.name}>
             {userName?.split(" ")[0] ?? "Manager"} 🏙️
           </Text>
         </View>
-        <TouchableOpacity
-          style={styles.notifBtn}
-          onPress={() => navigation.navigate("Notifications")}
-        >
-          <Ionicons
-            name="notifications-outline"
-            size={22}
-            color={COLORS.text_primary}
-          />
-        </TouchableOpacity>
+        <NotificationBell onPress={() => navigation.navigate("Notifications")} />
       </View>
 
       {/* KPI Grid */}
@@ -209,7 +204,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "flex-start",
     paddingHorizontal: SPACING.l,
-    paddingTop: SPACING.xxl,
     paddingBottom: SPACING.m,
   },
   greeting: { ...FONTS.body2, color: COLORS.text_muted },

@@ -1,18 +1,20 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KPICard } from "../../components/ui/KPICard";
+import { NotificationBell } from "../../components/ui/NotificationBell";
 import { RequestCard } from "../../components/ui/RequestCard";
 import {
-    CardSkeleton,
-    KPISkeleton,
+  CardSkeleton,
+  KPISkeleton,
 } from "../../components/ui/SkeletonLoader";
 import { COLORS, FONTS, SPACING } from "../../constants/theme";
 import { bloodRequestService } from "../../services/bloodRequestService";
@@ -24,23 +26,27 @@ const KANBAN_COLS: {
   label: string;
   color: string;
 }[] = [
-  { key: "pending", label: "Pending", color: COLORS.warning },
-  { key: "in_progress", label: "In Progress", color: COLORS.info },
-  { key: "escalated", label: "Escalated", color: COLORS.escalated },
-];
+    { key: "pending", label: "Pending", color: COLORS.warning },
+    { key: "in_progress", label: "In Progress", color: COLORS.info },
+    { key: "escalated", label: "Escalated", color: COLORS.escalated },
+  ];
 
 export default function HelplineDashboardScreen({ navigation }: any) {
+  const insets = useSafeAreaInsets();
   const { profile } = useAuth();
   const [allRequests, setAllRequests] = useState<BloodRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeCol, setActiveCol] = useState<BloodRequest["status"]>("pending");
+  const [stats, setStats] = useState({ averageResponseHours: 0 });
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const data = await bloodRequestService.getPending();
+      const recentStats = await bloodRequestService.getRecentStats();
       setAllRequests(data);
+      setStats({ averageResponseHours: recentStats.averageResponseHours });
     } catch (e) {
       console.log("Helpline load error:", e);
     } finally {
@@ -74,17 +80,20 @@ export default function HelplineDashboardScreen({ navigation }: any) {
             Manage blood requests & escalations
           </Text>
         </View>
-        <TouchableOpacity
-          style={styles.addBtn}
-          onPress={() => navigation.navigate("AddBloodRequest")}
-        >
-          <Ionicons name="add" size={22} color={COLORS.white} />
-        </TouchableOpacity>
+        <View style={{ flexDirection: "row", gap: 8 }}>
+          <NotificationBell onPress={() => navigation.navigate("Notifications")} />
+          <TouchableOpacity
+            style={styles.addBtn}
+            onPress={() => navigation.navigate("AddBloodRequest")}
+          >
+            <Ionicons name="add" size={22} color={COLORS.white} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 100 }]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -130,6 +139,14 @@ export default function HelplineDashboardScreen({ navigation }: any) {
                   value={counts.escalated}
                   icon="alert-circle-outline"
                   color={COLORS.escalated}
+                />
+              </View>
+              <View style={[styles.kpiItem, { marginRight: 10, width: 160 }]}>
+                <KPICard
+                  label="Response SLA"
+                  value={`${stats.averageResponseHours}h`}
+                  icon="timer-outline"
+                  color={COLORS.success}
                 />
               </View>
             </>
@@ -227,7 +244,6 @@ export default function HelplineDashboardScreen({ navigation }: any) {
             />
           ))
         )}
-        <View style={{ height: 40 }} />
       </ScrollView>
     </View>
   );

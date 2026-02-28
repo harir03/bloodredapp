@@ -1,14 +1,15 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-    FlatList,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { RequestCard } from "../../components/ui/RequestCard";
 import { CardSkeleton } from "../../components/ui/SkeletonLoader";
 import { COLORS, FONTS, SPACING } from "../../constants/theme";
@@ -27,6 +28,7 @@ const FILTER_TABS = [
 const URGENCY_FILTERS = ["all", "critical", "medium", "low"] as const;
 
 export default function ManageBloodRequestsScreen({ navigation }: any) {
+  const insets = useSafeAreaInsets();
   const { profile } = useAuth();
   const [requests, setRequests] = useState<BloodRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,7 +76,7 @@ export default function ManageBloodRequestsScreen({ navigation }: any) {
   return (
     <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + SPACING.s }]}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.backBtn}
@@ -216,7 +218,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: SPACING.xxl,
-    paddingTop: SPACING.xxxxl + 4,
     paddingBottom: SPACING.l,
     gap: 12,
   },

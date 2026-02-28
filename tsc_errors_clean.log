@@ -1,0 +1,18 @@
+﻿app/modal.tsx(11,22): error TS2322: Type '{ children: Element; href: "/"; dismissTo: true; style: { marginTop: number; paddingVertical: number; }; }' is not assignable to type 'IntrinsicAttributes & LinkProps<"/"> & { children?: ReactNode; }'.
+  Property 'dismissTo' does not exist on type 'IntrinsicAttributes & LinkProps<"/"> & { children?: ReactNode; }'.
+components/external-link.tsx(5,66): error TS2314: Generic type 'Href' requires 1 type argument(s).
+components/hello-wave.tsx(10,9): error TS2353: Object literal may only specify known properties, and 'animationName' does not exist in type 'TextStyle | RecursiveArray<TextStyle | Falsy | RegisteredStyle<TextStyle>> | SharedValue<TextStyle> | ... 5 more ... | RecursiveArray<...>'.
+functions/src/index.ts(73,39): error TS2339: Property 'name' does not exist on type '{ id: string; }'.
+functions/src/index.ts(75,73): error TS2339: Property 'name' does not exist on type '{ id: string; }'.
+functions/src/index.ts(95,44): error TS2339: Property 'expoPushToken' does not exist on type '{ id: string; }'.
+functions/src/index.ts(97,31): error TS2339: Property 'expoPushToken' does not exist on type '{ id: string; }'.
+src/components/ui/TabBar.tsx(9,19): error TS7031: Binding element 'state' implicitly has an 'any' type.
+src/components/ui/TabBar.tsx(9,26): error TS7031: Binding element 'descriptors' implicitly has an 'any' type.
+src/components/ui/TabBar.tsx(9,39): error TS7031: Binding element 'navigation' implicitly has an 'any' type.
+src/components/ui/TabBar.tsx(15,26): error TS7006: Parameter 'route' implicitly has an 'any' type.
+src/components/ui/TabBar.tsx(15,33): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/config/firebase.ts(6,3): error TS2305: Module '"firebase/auth"' has no exported member 'getReactNativePersistence'.
+src/screens/city-manager/ManageVolunteersScreen.tsx(92,13): error TS2322: Type '"outline"' is not assignable to type '"danger" | "primary" | "secondary" | "ghost" | undefined'.
+src/screens/shared/AddLeadScreen.tsx(180,18): error TS2551: Property 'body1' does not exist on type '{ h1: { fontFamily: string; fontSize: number; lineHeight: number; }; h2: { fontFamily: string; fontSize: number; lineHeight: number; }; h3: { fontFamily: string; fontSize: number; lineHeight: number; }; ... 5 more ...; label: { ...; }; }'. Did you mean 'body'?
+src/screens/shared/AddTaskScreen.tsx(79,50): error TS2345: Argument of type '{ title: string; description: string | undefined; type: "other" | "blood_delivery" | "donor_visit" | "event_setup" | "awareness_drive"; status: "pending"; priority: "low" | "medium" | "high"; ... 7 more ...; points_reward: number; }' is not assignable to parameter of type 'Omit<Task, "id" | "created_at" | "updated_at">'.
+  Property 'createdAt' is missing in type '{ title: string; description: string | undefined; type: "other" | "blood_delivery" | "donor_visit" | "event_setup" | "awareness_drive"; status: "pending"; priority: "low" | "medium" | "high"; ... 7 more ...; points_reward: number; }' but required in type 'Omit<Task, "id" | "created_at" | "updated_at">'.

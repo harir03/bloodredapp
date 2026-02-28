@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useCallback, useState } from "react";
+import * as Sharing from "expo-sharing";
+import { useCallback, useRef, useState } from "react";
 import {
   Alert,
   ScrollView,
@@ -9,6 +10,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { captureRef } from "react-native-view-shot";
 import { BloodGroupBadge } from "../../components/ui/BloodGroupBadge";
 import { COLORS, FONTS, RADII, SPACING } from "../../constants/theme";
 import { BADGES, computeBadges } from "../../services/leaderboardService";
@@ -38,6 +41,7 @@ function InfoRow({
 }
 
 export default function ProfileScreen({ navigation }: any) {
+  const insets = useSafeAreaInsets();
   const { profile, userName, userEmail, userRole, logout } = useAuth();
   const [loggingOut, setLoggingOut] = useState(false);
 
@@ -59,6 +63,8 @@ export default function ProfileScreen({ navigation }: any) {
     ]);
   }, [logout]);
 
+  const viewRef = useRef(null);
+
   const handleShareProfile = async () => {
     try {
       const stats = {
@@ -69,10 +75,30 @@ export default function ProfileScreen({ navigation }: any) {
 
       const message = `I'm a proud BloodConnect Volunteer! 🩸\n\nImpact Stats:\n✨ ${stats.points} Points Earned\n✅ ${stats.tasks} Tasks Completed\n🏆 ${stats.badges} Badges Unlocked\n\nJoin me in saving lives! Download BloodConnect today. #BloodConnect #Volunteer #Impact`;
 
-      await Share.share({
-        message,
-        title: "My BloodConnect Impact",
-      });
+      let imageUri = null;
+      try {
+        if (viewRef.current) {
+          imageUri = await captureRef(viewRef, {
+            format: "png",
+            quality: 0.9,
+          });
+        }
+      } catch (e) {
+        console.log("Failed to capture profile", e);
+      }
+
+      if (imageUri && await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(imageUri, {
+          dialogTitle: "Share Profile Impact",
+          mimeType: "image/png",
+          UTI: "public.png",
+        });
+      } else {
+        await Share.share({
+          message,
+          title: "My BloodConnect Impact",
+        });
+      }
     } catch (error: any) {
       Alert.alert("Sharing Error", error.message);
     }
@@ -96,9 +122,9 @@ export default function ProfileScreen({ navigation }: any) {
     : "?";
 
   return (
-    <View style={styles.container}>
+    <View collapsable={false} ref={viewRef} style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + SPACING.s }]}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.backBtn}
@@ -213,6 +239,24 @@ export default function ProfileScreen({ navigation }: any) {
           </View>
         </View>
 
+        {/* Certificates */}
+        <TouchableOpacity
+          style={styles.card}
+          onPress={() => navigation.navigate("Certificates")}
+          activeOpacity={0.8}
+        >
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+            <View style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: "#8B5CF6" + "18", alignItems: "center", justifyContent: "center" }}>
+              <Ionicons name="ribbon-outline" size={20} color="#8B5CF6" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardTitle}>My Certificates</Text>
+              <Text style={{ ...FONTS.caption, color: COLORS.text_muted }}>View & share your certificates</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={COLORS.text_muted} />
+          </View>
+        </TouchableOpacity>
+
         {/* Logout */}
         <TouchableOpacity
           style={styles.logoutBtn}
@@ -237,7 +281,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: SPACING.l,
-    paddingTop: SPACING.xxl,
+    paddingBottom: SPACING.l,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },

@@ -1,20 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { createClient } from "@supabase/supabase-js";
-import "react-native-url-polyfill/auto";
-import type { Database } from "../types/database";
-import { supabaseConfig } from "./env";
-
-export const supabase = createClient<Database>(
-  supabaseConfig.url,
-  supabaseConfig.anonKey,
-  {
-    auth: {
-      storage: AsyncStorage,
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: false,
-    },
-  },
-);
-
-export default supabase;
+// Supabase integration has been removed.
+// This application now uses Firebase Firestore exclusively.
+// This file is kept as a placeholder to avoid breaking any stale imports.
+// If you see this file being imported anywhere, remove that import.

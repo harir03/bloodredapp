@@ -29,11 +29,18 @@ import TaskDetailsScreen from "../screens/shared/TaskDetailsScreen";
 import UserDetailsScreen from "../screens/shared/UserDetailsScreen";
 import VolunteerDetailsScreen from "../screens/shared/VolunteerDetailsScreen";
 // New shared screens
+import IssueCertificateScreen from "../screens/admin/IssueCertificateScreen";
+import PushNotificationScreen from "../screens/admin/PushNotificationScreen";
+import AddBloodPouchScreen from "../screens/shared/AddBloodPouchScreen";
 import AddBloodRequestScreen from "../screens/shared/AddBloodRequestScreen";
 import AddEventScreen from "../screens/shared/AddEventScreen";
+import AddLeadScreen from "../screens/shared/AddLeadScreen";
 import AllBadgesScreen from "../screens/shared/AllBadgesScreen";
 import AssignVolunteerScreen from "../screens/shared/AssignVolunteerScreen";
+import AssignVolunteerToEventScreen from "../screens/shared/AssignVolunteerToEventScreen";
 import BloodRequestDetailsScreen from "../screens/shared/BloodRequestDetailsScreen";
+import CertificateScreen from "../screens/shared/CertificateScreen";
+import EventDetailsScreen from "../screens/shared/EventDetailsScreen";
 import EventsScreen from "../screens/shared/EventsScreen";
 import LeaderboardScreen from "../screens/shared/LeaderboardScreen";
 import ManageBloodRequestsScreen from "../screens/shared/ManageBloodRequestsScreen";
@@ -41,7 +48,7 @@ import ManageDonorsScreen from "../screens/shared/ManageDonorsScreen";
 import NotificationsScreen from "../screens/shared/NotificationsScreen";
 import ProfileScreen from "../screens/shared/ProfileScreen";
 import ReportsScreen from "../screens/shared/ReportsScreen";
-
+import AddDonorNoteScreen from "../screens/volunteer/AddDonorNoteScreen";
 const Stack = createStackNavigator();
 
 const AuthStack = () => (
@@ -110,7 +117,15 @@ const AppStack = () => {
       <Stack.Screen name="AllBadges" component={AllBadgesScreen} />
       <Stack.Screen name="Events" component={EventsScreen} />
       <Stack.Screen name="AddEvent" component={AddEventScreen} />
+      <Stack.Screen name="EventDetails" component={EventDetailsScreen} />
+      <Stack.Screen name="AssignVolunteerToEvent" component={AssignVolunteerToEventScreen} />
+      <Stack.Screen name="AddLead" component={AddLeadScreen} />
       <Stack.Screen name="Reports" component={ReportsScreen} />
+      <Stack.Screen name="AddDonorNote" component={AddDonorNoteScreen} />
+      <Stack.Screen name="Certificates" component={CertificateScreen} />
+      <Stack.Screen name="PushNotification" component={PushNotificationScreen} />
+      <Stack.Screen name="IssueCertificate" component={IssueCertificateScreen} />
+      <Stack.Screen name="AddBloodPouch" component={AddBloodPouchScreen} />
     </Stack.Navigator>
   );
 };

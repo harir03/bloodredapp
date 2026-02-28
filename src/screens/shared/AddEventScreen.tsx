@@ -1,22 +1,22 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { COLORS, FONTS, RADII, SPACING } from "../../constants/theme";
 import { eventService } from "../../services/eventService";
 import { useAuth } from "../../stores/AuthProvider";
 
 export default function AddEventScreen({ navigation }: any) {
-  const { user } = useAuth();
+  const { userId, profile } = useAuth();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -57,8 +57,8 @@ export default function AddEventScreen({ navigation }: any) {
         date: date.trim(),
         startTime: startTime.trim(),
         endTime: endTime.trim(),
-        organizer: user?.id ?? "unknown",
-        organizerName: user?.name ?? undefined,
+        organizer: userId ?? "unknown",
+        organizerName: profile?.name ?? undefined,
         status: "upcoming",
         volunteersAssigned: [],
         expectedDonors: parseInt(expectedDonors) || 0,
@@ -294,5 +294,5 @@ const styles = StyleSheet.create({
     marginTop: SPACING.s,
   },
   submitBtnDisabled: { opacity: 0.6 },
-  submitText: { ...FONTS.button, color: COLORS.white },
+  submitText: { ...FONTS.h4, color: COLORS.white },
 });

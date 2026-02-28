@@ -1,12 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
-    FlatList,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ListItemSkeleton } from "../../components/ui/SkeletonLoader";
 import { COLORS, FONTS, RADII, SPACING } from "../../constants/theme";
 import { notificationService } from "../../services/notificationService";
@@ -32,6 +33,7 @@ function timeAgo(date: Date | string): string {
 }
 
 export default function NotificationsScreen({ navigation }: any) {
+  const insets = useSafeAreaInsets();
   const { profile } = useAuth();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,9 +73,9 @@ export default function NotificationsScreen({ navigation }: any) {
         onPress={() => {
           handleMarkRead(item.id);
           // Navigate to details if deepLink present
-          if (item.deepLink) {
+          if ((item as any).deepLink) {
             try {
-              const parts = item.deepLink.split("/");
+              const parts = (item as any).deepLink.split("/");
               if (parts[0] === "request" && parts[1]) {
                 navigation.navigate("BloodRequestDetails", {
                   requestId: parts[1],
@@ -81,7 +83,7 @@ export default function NotificationsScreen({ navigation }: any) {
               } else if (parts[0] === "task" && parts[1]) {
                 navigation.navigate("TaskDetails", { taskId: parts[1] });
               }
-            } catch (_) {}
+            } catch (_) { }
           }
         }}
         activeOpacity={0.75}
@@ -106,7 +108,7 @@ export default function NotificationsScreen({ navigation }: any) {
   return (
     <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + SPACING.s }]}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.backBtn}
@@ -169,7 +171,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: SPACING.l,
-    paddingTop: SPACING.xxl,
+    paddingBottom: SPACING.l,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
     gap: 12,

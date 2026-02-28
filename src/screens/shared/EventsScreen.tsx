@@ -1,12 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
-    FlatList,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { CardSkeleton } from "../../components/ui/SkeletonLoader";
 import { COLORS, FONTS, RADII, SPACING } from "../../constants/theme";
@@ -62,7 +62,7 @@ function EventCard({
         <View style={styles.metaRow}>
           <Ionicons name="people-outline" size={12} color={COLORS.text_muted} />
           <Text style={styles.metaText}>
-            {event.registered_count ?? 0} / {event.capacity ?? "∞"} registered
+            {event.registered_count ?? 0} / {event.expectedDonors ?? "∞"} registered
           </Text>
         </View>
         {isPast && (
@@ -90,7 +90,7 @@ export default function EventsScreen({ navigation }: any) {
         const { data } =
           tab === "upcoming"
             ? await eventService.getUpcoming()
-            : await eventService.getAll({ orderBy: "date", orderDir: "desc" });
+            : await eventService.getAll({ orderBy: "date", ascending: false });
         setEvents(data ?? []);
       } catch (e) {
         console.log("Events load error:", e);

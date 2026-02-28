@@ -124,9 +124,16 @@ export const bloodRequestService = {
     const snap = await getDoc(ref);
     const existing = snap.data();
     const responseLog: ResponseLogEntry[] = existing?.responseLog ?? [];
+
+    // [ARIA] Automatically track when the request was ultimately resolved
+    const extraUpdates: Partial<BloodRequest> = { ...(extra ?? {}) };
+    if (status === "completed" || status === "cancelled") {
+      extraUpdates.resolvedAt = new Date().toISOString();
+    }
+
     await updateDoc(ref, sanitizeFirestoreData({
       status,
-      ...(extra ?? {}),
+      ...extraUpdates,
       responseLog: [...responseLog, logEntry],
     }));
 
@@ -181,8 +188,10 @@ export const bloodRequestService = {
         title: `Blood Donation: ${data?.patientName || 'Request'}`,
         description: `Assist with blood donation at ${data?.hospital || 'Hospital'} in ${data?.city || 'City'}.`,
         assignedTo: volunteerId,
+        assigned_to: volunteerId,       // dual-write for query compat
         assignedToName: volunteerName,
         assignedBy: by,
+        assigned_by: by,                // dual-write for query compat
         status: "pending",
         priority: data?.urgency === "critical" ? "high" : "medium",
         requestId: id,
@@ -221,14 +230,72 @@ export const bloodRequestService = {
     pending: number;
     critical: number;
     resolved: number;
+    averageResponseHours: number;
   }> {
     const all = await getDocs(collection(db, COL));
     const items = all.docs.map((d) => d.data() as BloodRequest);
+
+    // [ARIA] Calculate average response time for completed requests
+    const resolvedItems = items.filter((r) => r.status === "completed" && r.createdAt && r.resolvedAt);
+    let totalHours = 0;
+    resolvedItems.forEach(r => {
+      const created = new Date(r.createdAt).getTime();
+      const resolved = new Date(r.resolvedAt!).getTime();
+      totalHours += (resolved - created) / (1000 * 60 * 60);
+    });
+
     return {
       total: items.length,
       pending: items.filter((r) => r.status === "pending").length,
       critical: items.filter((r) => r.urgency === "critical").length,
       resolved: items.filter((r) => r.status === "completed").length,
+      averageResponseHours: resolvedItems.length > 0 ? Number((totalHours / resolvedItems.length).toFixed(1)) : 0,
+    };
+  },
+
+  async getDailyStats(): Promise<{ labels: string[]; data: number[] }> {
+    const all = await getDocs(collection(db, COL));
+    const items = all.docs.map((d) => d.data() as BloodRequest);
+
+    const last7Days: Record<string, number> = {};
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().split("T")[0];
+      last7Days[key] = 0;
+    }
+
+    items.forEach(item => {
+      if (item.createdAt) {
+        const dateKey = item.createdAt.split("T")[0];
+        if (last7Days[dateKey] !== undefined) {
+          last7Days[dateKey]++;
+        }
+      }
+    });
+
+    const sortedKeys = Object.keys(last7Days).sort();
+    return {
+      labels: sortedKeys.map(k => k.split("-").slice(1).join("/")),
+      data: sortedKeys.map(k => last7Days[k])
+    };
+  },
+
+  async getStatsByCity(): Promise<{ labels: string[]; data: number[] }> {
+    const all = await getDocs(collection(db, COL));
+    const items = all.docs.map((d) => d.data() as BloodRequest);
+
+    const cityCounts: Record<string, number> = {};
+    items.forEach(item => {
+      if (item.city) {
+        cityCounts[item.city] = (cityCounts[item.city] || 0) + 1;
+      }
+    });
+
+    const entries = Object.entries(cityCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    return {
+      labels: entries.map(e => e[0]),
+      data: entries.map(e => e[1])
     };
   },
 };
