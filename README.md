@@ -169,7 +169,7 @@ Use the following test accounts; **the password for all roles is `123456`** (cop
 | HR Manager     | hr_test@gmail.com               | 123456      | Volunteer management & campaigns  |
 | 🚨 Helpline Op | helplineoperator@gmail.com      | 123456      | Request intake & assignment       |
 | City Manager   | Cm1@gmail.com                   | 123456      | City oversight & analytics        |
-| 🛡️ Admin       | admin@bloodconnect.org          | 123456      | System admin & user management    |
+| 🛡️ Admin       | dev@test.com                    | 123456      | System admin & user management    |
 
 > 🔺 **Tip:** Copy the password `123456` and paste into the app to avoid typing errors. Test each role to explore role-specific dashboards.
 
@@ -218,10 +218,12 @@ eas build -p android --profile production
 
 **iOS:**
 ```bash
-eas build -p ios --profile production
 ```
 
 When contributing, please ensure all TypeScript interfaces are strictly adhered to, particularly when modifying shared `services` that interact with the Firestore instances, to prevent `undefined` crashes across platforms.
 
 **VIDEO**
 https://youtu.be/nXnvv3FiDk8
+
+
+
