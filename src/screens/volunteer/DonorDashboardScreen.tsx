@@ -7,14 +7,22 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { COLORS, FONTS, RADII, SPACING } from "../../constants/theme";
 import { useAuth } from "../../stores/AuthProvider";
 
 const DonorDashboardScreen = ({ navigation }: any) => {
     const { profile } = useAuth();
+    const insets = useSafeAreaInsets();
 
     return (
-        <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        <ScrollView
+            style={styles.container}
+            contentContainerStyle={[
+                styles.content,
+                { paddingBottom: insets.bottom + 100 }
+            ]}
+        >
             <View style={styles.hero}>
                 <View style={styles.avatar}>
                     <Text style={styles.avatarText}>
@@ -102,7 +110,7 @@ const styles = StyleSheet.create({
         borderColor: COLORS.accent,
         marginBottom: SPACING.m,
     },
-    avatarText: { fontSize: 32, fontFamily: "Inter-Bold", color: COLORS.accent },
+    avatarText: { fontSize: 32, fontWeight: "bold" as const, color: COLORS.accent },
     welcome: { ...FONTS.h2, color: COLORS.text_primary, marginBottom: 4 },
     roleBadge: {
         flexDirection: "row",
@@ -115,7 +123,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: COLORS.accent + "44",
     },
-    roleText: { ...FONTS.caption, color: COLORS.accent, fontFamily: "Inter-SemiBold" },
+    roleText: { ...FONTS.caption, color: COLORS.accent, fontWeight: "600" as const },
 
     infoCard: {
         backgroundColor: COLORS.surface,
@@ -155,7 +163,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         marginBottom: 8,
     },
-    gridLabel: { ...FONTS.body3, color: COLORS.text_primary, fontFamily: "Inter-Medium" },
+    gridLabel: { ...FONTS.body3, color: COLORS.text_primary, fontWeight: "500" as const },
 });
 
 export default DonorDashboardScreen;

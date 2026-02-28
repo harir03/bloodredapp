@@ -8,6 +8,7 @@ import { AuthProvider } from "../src/stores/AuthProvider";
 import { NotificationProvider } from "../src/stores/NotificationProvider";
 import { ToastProvider } from "../src/stores/ToastProvider";
 
+// Prevent splash screen from hiding until fonts are loaded
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={styles.container}>

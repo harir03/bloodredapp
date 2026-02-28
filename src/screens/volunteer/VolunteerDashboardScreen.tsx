@@ -376,7 +376,7 @@ export default function VolunteerDashboardScreen({ navigation }: any) {
           ))}
         </View>
 
-        <View style={{ height: 40 }} />
+        <View style={{ height: 100 + insets.bottom }} />
       </ScrollView>
     </View>
   );

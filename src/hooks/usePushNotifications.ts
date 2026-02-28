@@ -1,3 +1,4 @@
+import Constants from "expo-constants";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import { useEffect, useState } from "react";
@@ -67,8 +68,12 @@ async function registerForPushNotificationsAsync() {
             return;
         }
 
-        // Expo project ID is recommended in bare apps, but for Expo Go it automatically infers it
-        token = (await Notifications.getExpoPushTokenAsync()).data;
+        // Expo project ID is strictly REQUIRED in standalone/development builds for Expo SDK 50+
+        token = (
+            await Notifications.getExpoPushTokenAsync({
+                projectId: Constants.expoConfig?.extra?.eas?.projectId || "b622750d-e617-416c-9e54-a971e9f76a2f",
+            })
+        ).data;
         console.log("Expo Push Token:", token);
     } else {
         console.log("Must use physical device for Push Notifications");

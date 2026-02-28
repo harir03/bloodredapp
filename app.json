@@ -12,6 +12,9 @@
     },
     "android": {
       "package": "com.bloodrepo.app",
+      "permissions": [
+        "android.permission.DETECT_SCREEN_CAPTURE"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -41,6 +44,14 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "b622750d-e617-416c-9e54-a971e9f76a2f"
+      }
     }
   }
 }

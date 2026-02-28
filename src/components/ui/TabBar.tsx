@@ -66,7 +66,15 @@ const TabBar = ({ state, descriptors, navigation }: any) => {
               onLongPress={onLongPress}
               style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
             >
-              <View style={{ width: 24, height: 24 }}>{options.tabBarIcon({ focused: isFocused, color: isFocused ? COLORS.primary : COLORS.text_muted, size: 24 })}</View>
+              <View style={{ width: 24, height: 24 }}>
+                {options.tabBarIcon ? (
+                  options.tabBarIcon({
+                    focused: isFocused,
+                    color: isFocused ? COLORS.primary : COLORS.text_muted,
+                    size: 24,
+                  })
+                ) : null}
+              </View>
             </TouchableOpacity>
           </Animated.View>
         );

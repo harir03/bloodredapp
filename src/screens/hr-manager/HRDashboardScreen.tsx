@@ -71,6 +71,7 @@ export default function HRDashboardScreen({ navigation }: any) {
   return (
     <ScrollView
       style={styles.container}
+      contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}
       showsVerticalScrollIndicator={false}
       refreshControl={
         <RefreshControl
@@ -83,7 +84,7 @@ export default function HRDashboardScreen({ navigation }: any) {
       <View style={[styles.header, { paddingTop: insets.top + SPACING.l }]}>
         <View>
           <Text style={styles.greeting}>{greeting},</Text>
-          <Text style={styles.name}>{userName?.split(" ")[0] ?? "HR"} 👔</Text>
+          <Text style={styles.name}>{userName?.split(" ")?.[0] || "HR"} 👔</Text>
         </View>
         <TouchableOpacity
           style={styles.notifBtn}

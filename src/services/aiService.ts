@@ -1,12 +1,7 @@
-import { GoogleGenAI } from "@google/genai";
 import { firebaseConfig } from "../config/env";
 
-// We'll use the Firebase API key as a fallback if a dedicated GEMINI_API_KEY isn't provided, 
-// though typically you'd want a separate one.
-// @ts-ignore
 const GEMINI_API_KEY = firebaseConfig.geminiApiKey || firebaseConfig.apiKey;
-
-const genAI = new GoogleGenAI({ apiKey: GEMINI_API_KEY as string }) as any;
+const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
 
 export type NotificationTarget = "donor" | "volunteer";
 
@@ -22,53 +17,55 @@ interface AIData {
 
 export const aiService = {
     /**
-     * Generates a "Zomato-style" witty notification message
+     * Generates a "Zomato-style" witty notification message using REST API
      */
     generateWittyNotification: async (data: AIData): Promise<string> => {
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            if (!GEMINI_API_KEY) {
+                throw new Error("No Gemini API Key provided");
+            }
 
-            let prompt = "";
-
+            let systemPrompt = "";
             if (data.role === "donor") {
-                prompt = `
+                systemPrompt = `
           Write a Zomato-style push notification message for a blood donor named ${data.userName}.
           Style: Flirty, romantic, quirky, witty, clever, and highly engaging.
-          Context: Encourage them to donate blood.
+          Context: Encourage them to donate blood. Use puns related to blood/hearts/love. 🩸😉
           ${data.festival ? `Current Festival: ${data.festival}` : ""}
-          ${data.bloodGroup ? `Donor's Blood Group: ${data.bloodGroup}` : ""}
-          ${data.city ? `Location: ${data.city}` : ""}
-          
-          Guidelines:
-          - Use emojis.
-          - Use puns related to blood/hearts/love.
-          - Max 100 characters.
-          - Make it sound like a funny text from a crush or a quirky food delivery app.
-          - No quotes around the message.
+          Donor's Blood Group: ${data.bloodGroup || "Unknown"}
+          Location: ${data.city || "their city"}
+          Guidelines: Max 100 characters. No quotes.
         `;
             } else {
-                prompt = `
+                systemPrompt = `
           Write a Zomato-style push notification message for a volunteer named ${data.userName}.
-          Style: Witty, clever, motivating, and quirky.
-          Context: Inform them about their work.
-          Tasks Assigned to them: ${data.taskCount ?? 0}
-          Total Unassigned Ongoing Tasks: ${data.unassignedTasks ?? 0}
-          ${data.festival ? `Current Festival: ${data.festival}` : ""}
-          
-          Guidelines:
-          - Use emojis.
-          - Use puns related to teamwork/heroism/delivery.
-          - Mention that tasks are waiting for their "superhero" touch.
-          - Max 100 characters.
-          - No quotes around the message.
+          Style: Witty, clever, motivating, and quirky. 🦸‍♂️⚡
+          Tasks Assigned: ${data.taskCount ?? 0}
+          Unassigned Tasks: ${data.unassignedTasks ?? 0}
+          Guidelines: Max 100 characters. No quotes.
         `;
             }
 
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
-            return response.text().trim().replace(/^"|"$/g, "");
+            const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: systemPrompt }] }],
+                    generationConfig: {
+                        maxOutputTokens: 100,
+                        temperature: 0.8,
+                    },
+                }),
+            });
+
+            const json = await response.json();
+            const generatedText = json.candidates?.[0]?.content?.parts?.[0]?.text;
+
+            return generatedText?.trim().replace(/^"|"$/g, "") || "Hero alert! Saving lives is the new cool. 🩸⚡";
+
         } catch (error) {
-            console.error("AI Generation Error:", error);
+            console.error("AI Generation Error (REST):", error);
+            // Fallback messages
             if (data.role === "donor") {
                 return "Your heart beats for others, but your blood can save them. Date at the clinic? 🩸😉";
             } else {

@@ -99,19 +99,20 @@ export const SIZES = {
 };
 
 export const FONTS = {
-  h1: { fontFamily: "Inter-Bold", fontSize: SIZES.h1, lineHeight: 36 },
-  h2: { fontFamily: "Inter-SemiBold", fontSize: SIZES.h2, lineHeight: 30 },
-  h3: { fontFamily: "Inter-SemiBold", fontSize: SIZES.h3, lineHeight: 22 },
-  h4: { fontFamily: "Inter-Medium", fontSize: SIZES.h4, lineHeight: 20 },
-  body: { fontFamily: "Inter-Regular", fontSize: SIZES.body, lineHeight: 22 },
-  body2: { fontFamily: "Inter-Regular", fontSize: 14, lineHeight: 20 },
-  body3: { fontFamily: "Inter-Regular", fontSize: SIZES.body3, lineHeight: 18 },
+  h1: { fontFamily: "System", fontWeight: "bold" as const, fontSize: SIZES.h1, lineHeight: 36 },
+  h2: { fontFamily: "System", fontWeight: "600" as const, fontSize: SIZES.h2, lineHeight: 30 },
+  h3: { fontFamily: "System", fontWeight: "600" as const, fontSize: SIZES.h3, lineHeight: 22 },
+  h4: { fontFamily: "System", fontWeight: "500" as const, fontSize: SIZES.h4, lineHeight: 20 },
+  body: { fontFamily: "System", fontWeight: "400" as const, fontSize: SIZES.body, lineHeight: 22 },
+  body2: { fontFamily: "System", fontWeight: "400" as const, fontSize: 14, lineHeight: 20 },
+  body3: { fontFamily: "System", fontWeight: "400" as const, fontSize: SIZES.body3, lineHeight: 18 },
   caption: {
-    fontFamily: "Inter-Regular",
+    fontFamily: "System",
+    fontWeight: "400" as const,
     fontSize: SIZES.caption,
     lineHeight: 16,
   },
-  label: { fontFamily: "Inter-Medium", fontSize: SIZES.label, lineHeight: 18 },
+  label: { fontFamily: "System", fontWeight: "500" as const, fontSize: SIZES.label, lineHeight: 18 },
 };
 
 export const SPACING = {
