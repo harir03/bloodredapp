@@ -20,7 +20,7 @@ import { BADGES, computeBadges } from "../../services/leaderboardService";
 import { taskService } from "../../services/taskService";
 import { volunteerService } from "../../services/volunteerService";
 import { useAuth } from "../../stores/AuthProvider";
-import { BloodRequest, Task, Volunteer } from "../../types/database";
+import type { BloodRequest, Task, Volunteer } from "../../types/database";
 
 export default function VolunteerDashboardScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -45,9 +45,9 @@ export default function VolunteerDashboardScreen({ navigation }: any) {
     if (!profile?.email) return;
     setLoading(true);
     try {
-      const { data: vols } = await volunteerService.getAll();
-      const vol = (vols || []).find(
-        (v: Volunteer) => v.email === profile.email || v.profile_id === profile.id,
+      const { data: vols } = await volunteerService.getAll().catch(() => ({ data: [] }));
+      const vol = (Array.isArray(vols) ? vols : []).find(
+        (v: Volunteer) => v?.email === profile?.email || v?.profile_id === profile?.id,
       );
       setVolunteer(vol ?? null);
 
@@ -59,11 +59,16 @@ export default function VolunteerDashboardScreen({ navigation }: any) {
         const { data: snake } = await taskService.getAll({
           filters: { assigned_to: vol.id },
         } as any);
-        const combined = [...(camel || [])];
-        (snake || []).forEach((s: any) => { if (!combined.find(c => c.id === s.id)) combined.push(s); });
+
+        // Ensure camel and snake are arrays before spread/forEach
+        const safeCamel = Array.isArray(camel) ? camel : [];
+        const safeSnake = Array.isArray(snake) ? snake : [];
+
+        const combined = [...safeCamel];
+        safeSnake.forEach((s: any) => { if (!combined.find(c => c.id === s.id)) combined.push(s); });
 
         setTasks(
-          combined.filter((t: Task) => t.status !== "completed").slice(0, 5),
+          combined.filter((t: Task) => t?.status !== "completed").slice(0, 5),
         );
       }
     } catch (e) {
@@ -93,14 +98,19 @@ export default function VolunteerDashboardScreen({ navigation }: any) {
     setRefreshing(false);
   }, [load]);
 
-  const points = volunteer?.points ?? profile?.points ?? 0;
-  const badges = volunteer?.badges ?? profile?.badges ?? computeBadges(points);
+  const rawPoints = volunteer?.points ?? profile?.points ?? 0;
+  // Force points to be a valid number, default to 0 if NaN or corrupted in db
+  const points = !isNaN(Number(rawPoints)) ? Number(rawPoints) : 0;
 
-  const nextBadgeEntry = Object.entries(BADGES)
-    .sort((a, b) => a[1].minPoints - b[1].minPoints)
-    .find(([, v]) => points < v.minPoints);
+  const rawBadges = volunteer?.badges ?? profile?.badges ?? computeBadges(points);
+  // Force badges to be an array, default to empty array if corrupted
+  const badges = Array.isArray(rawBadges) ? rawBadges : [];
 
-  const progressToNext = nextBadgeEntry
+  const nextBadgeEntry = Object.entries(BADGES || {})
+    .sort((a, b) => (a[1]?.minPoints || 0) - (b[1]?.minPoints || 0))
+    .find(([, v]) => points < (v?.minPoints || Infinity));
+
+  const progressToNext = nextBadgeEntry && nextBadgeEntry[1]?.minPoints > 0
     ? Math.min(1, points / nextBadgeEntry[1].minPoints)
     : 1;
 
@@ -250,7 +260,7 @@ export default function VolunteerDashboardScreen({ navigation }: any) {
             </Text>
           </View>
         ) : (
-          tasks.map((task) => (
+          (Array.isArray(tasks) ? tasks : []).map((task) => (
             <TouchableOpacity
               key={task.id}
               style={styles.taskCard}
@@ -303,7 +313,7 @@ export default function VolunteerDashboardScreen({ navigation }: any) {
               <Text style={styles.taskTitle}>No active blood requests nearby</Text>
             </View>
           ) : (
-            liveRequests.map((req) => (
+            (Array.isArray(liveRequests) ? liveRequests : []).map((req) => (
               <TouchableOpacity
                 key={req.id}
                 style={[styles.taskCard, { borderColor: req.urgency === 'critical' ? COLORS.critical + '88' : COLORS.border }]}
