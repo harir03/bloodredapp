@@ -24,6 +24,26 @@ BloodConnect Ops is a robust, cross-platform mobile application built with React
 
 Unlike a simple social app, BloodConnect Ops is an **operational management tool**. Its primary goal is to safely triage inbound blood requests, assign them to verified volunteers on the ground, manage regional blood drives (camps), and reward community engagement through a gamified leaderboard system.
 
+### 🔄 Data Flow
+
+```mermaid
+flowchart LR
+    User[User Interaction]
+    UI[React Native Screens]
+    Context[AuthContext / Navigation]
+    Services[Core Services (taskService, profileService, etc.)]
+    Firebase[Firestore & Auth]
+
+    User --> UI
+    UI --> Context
+    Context --> Services
+    Services --> Firebase
+    Firebase --> Services
+    Services --> UI
+```
+
+Actions in the UI propagate through context providers and service modules, hitting Firestore for CRUD and real-time sync, then bubbling results back to components. Offline queuing, notification hooks and analytics side‑effects are woven into this chain.
+
 The application relies heavily on dynamic, **Role-Based Access Control (RBAC)**. New users default to the restricted "Donor" role. Operational dashboards, task claiming APIs, and administrative oversight tools are tightly gated behind Firebase Authentication profiles that must be elevated by an existing Administrator.
 
 > 📖 **Deep Dive into Features:** For an exhaustive breakdown of the platform's capabilities—including the Sync Engine, the Gamification mechanics, and precise Administrative capabilities—please read [**FEATURES.md**](./FEATURES.md).
@@ -39,7 +59,32 @@ The application relies heavily on dynamic, **Role-Based Access Control (RBAC)**.
 *   **State Management:** React Context API (`AuthProvider`, `ToastProvider`)
 *   **UI Components:** Custom design system (`theme.ts`) utilizing `expo-vector-icons`.
 
----
+## 📷 Screenshots — All Roles
+
+### 🔐 Authentication
+| Login |
+|:---:|
+| ![](assets/images/login_page.jpeg) |
+
+### 👤 Volunteer Role
+| Volunteer Dashboard | Volunteer Tasks | Impact Passport & Leaderboard |
+|:---:|:---:|:---:|
+| ![](assets/images/volunteer_dashboard.jpeg) | ![](assets/images/volunteer_task.jpeg) | ![](assets/images/leaderboard.jpeg) |
+
+### 🚨 Helpline Operator Role
+| Helpline Dashboard | Blood Request Details | Helpline Calls |
+|:---:|:---:|:---:|
+| ![](assets/images/helpline_dashboard.jpeg) | ![](assets/images/blood_request.jpeg) | ![](assets/images/helpline_calls.jpeg) |
+
+### 👔 HR / Volunteer Manager Role
+| HR Dashboard | Manage Volunteers | Volunteer Details |
+|:---:|:---:|:---:|
+| ![](assets/images/hr_dashboard.jpeg) | ![](assets/images/manage_volunteers.jpeg) | ![](assets/images/staff_details.jpeg) |
+
+### 🏙️ City Manager Role
+| City Manager Dashboard | Manage Staff |
+|:---:|:---:|
+| ![](assets/images/citymanager_dashboard.jpeg) | ![](assets/images/manage_staff.jpeg) |
 
 ## 🌟 Core Feature Domains
 
@@ -48,6 +93,15 @@ The application relies heavily on dynamic, **Role-Based Access Control (RBAC)**.
 3.  **Gamified Impact System:** An automated engine that rewards points for tasks, parses those points into rank tiers, and automatically awards achievements/badges (e.g., "First Blood", "Hero").
 4.  **Social Sharing:** Integrated Native Share APIs allow volunteers to broadcast their impact stats and earned badges directly to their social media networks.
 5.  **Administrative Command Center:** Deep dive pages allow admins to view user health, promote donors to volunteers, instantly assign critical tasks, and view global system statistics.
+
+## 💡 Innovative Ideas
+
+* **WarRoom Countdown:** A 30‑minute timer for critical requests with volunteer acceptance tracking to prevent “orphaned” tasks.
+* **BloodRadar Heatmap:** Live city‑level visualization of blood availability, aiding dispatch decisions during shortages.
+* **Offline Action Queue:** Volunteers can perform actions offline; they sync automatically when connectivity returns.
+* **Impact Passport:** Personal stats and achievement tracker that encourages volunteer engagement and sharing.
+* **Compliance‑Aware Donor Cooldown:** Automatically marks donors unavailable for 90 days post‑donation per regulatory guidelines.
+* **Dynamic Role Navigator:** App loads only necessary screens for a user’s role, reducing bundle size and cognitive load.
 
 ---
 
@@ -105,6 +159,19 @@ const firebaseConfig = {
 ```
 
 *(Note: Never commit your actual raw `.env` or production API keys to public source control.)*
+
+### 🔐 Test Accounts & Credentials
+Use the following test accounts; **the password for all roles is `123456`** (copy & paste for convenience). These are seeded in the demo database.
+
+| 🎭 Role        | 📧 Email                        | 🔑 Password | 📝 Notes                          |
+|----------------|---------------------------------|-------------|-----------------------------------|
+| Volunteer      | volunteer_test@gmail.com        | 123456      | Field volunteer (task executor)   |
+| HR Manager     | hr_test@gmail.com               | 123456      | Volunteer management & campaigns  |
+| 🚨 Helpline Op | helplineoperator@gmail.com      | 123456      | Request intake & assignment       |
+| City Manager   | Cm1@gmail.com                   | 123456      | City oversight & analytics        |
+| 🛡️ Admin       | admin@bloodconnect.org          | 123456      | System admin & user management    |
+
+> 🔺 **Tip:** Copy the password `123456` and paste into the app to avoid typing errors. Test each role to explore role-specific dashboards.
 
 ### 3. Start the Server
 ```bash
