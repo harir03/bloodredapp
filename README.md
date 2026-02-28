@@ -28,11 +28,11 @@ Unlike a simple social app, BloodConnect Ops is an **operational management tool
 
 ```mermaid
 flowchart LR
-    User[User Interaction]
-    UI[React Native Screens]
-    Context[AuthContext / Navigation]
-    Services[Core Services (taskService, profileService, etc.)]
-    Firebase[Firestore & Auth]
+    User["User Interaction"]
+    UI["React Native Screens"]
+    Context["AuthContext / Navigation"]
+    Services["Core Services"]
+    Firebase["Firestore & Auth"]
 
     User --> UI
     UI --> Context
