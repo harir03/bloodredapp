@@ -54,6 +54,10 @@ export type Profile = {
   expoPushToken?: string;
   points?: number;
   badges?: string[];
+  currentStreak?: number;
+  lastLoginDate?: string;
+  longestStreak?: number;
+  remarks?: DonorRemark[];
 };
 
 export interface AttendanceEntry {
@@ -87,15 +91,49 @@ export interface Volunteer {
   joinedAt: string;
   joined_at: string;
   lastActiveAt?: string;
+  current_streak?: number;
+  last_login_date?: string;
   attendanceLog: AttendanceEntry[];
   created_at: string;
   updated_at: string;
+}
+
+export interface DonorRemark {
+  id: string;
+  date: string;
+  authorId: string;
+  authorName: string;
+  text: string;
+  type: "medical" | "behavioral" | "general";
 }
 
 export interface DonationHistoryEntry {
   date: string;
   camp?: string;
   units: number;
+}
+
+// /bloodPouches/{pouchId}
+export interface BloodPouch {
+  id: string;
+  pouchId: string; // Auto-generated unique ID printed on the pouch
+  donorName: string;
+  donorAge: number;
+  donorGender: "male" | "female" | "other";
+  donorPhone: string;
+  bloodGroup: BloodGroup | string;
+  units: number;
+  collectionDate: string;
+  expiryDate: string;
+  notes: string;
+  imageUri?: string; // Base64 or local URI of the blood pouch photo
+  collectedBy: string; // userId who collected
+  collectedByName: string;
+  donorUserId: string; // Links to profiles/{userId} for notifications
+  city?: string;
+  hospital?: string;
+  status: "available" | "reserved" | "used" | "expired" | "discarded";
+  createdAt: string;
 }
 
 // /donors/{donorId}
@@ -121,6 +159,7 @@ export interface Donor {
   medicalNotes?: string;
   medical_notes?: string;
   donationHistory: DonationHistoryEntry[];
+  remarks?: DonorRemark[];
   createdAt: string;
   updatedAt: string;
   created_at?: string;
@@ -252,13 +291,15 @@ export interface AppNotification {
   | "badge_earned"
   | "event_reminder"
   | "task_overdue"
+  | "lifesaver"
   | "general";
   read: boolean;
   createdAt: string;
   linkedEntity?: {
-    type: "request" | "task" | "event" | "volunteer";
+    type: "request" | "task" | "event" | "volunteer" | "pouch";
     id: string;
   };
+  data?: Record<string, any>;
 }
 
 // /chatSessions/{sessionId}

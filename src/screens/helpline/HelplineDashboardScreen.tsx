@@ -8,7 +8,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KPICard } from "../../components/ui/KPICard";
+import { NotificationBell } from "../../components/ui/NotificationBell";
 import { RequestCard } from "../../components/ui/RequestCard";
 import {
   CardSkeleton,
@@ -30,6 +32,7 @@ const KANBAN_COLS: {
   ];
 
 export default function HelplineDashboardScreen({ navigation }: any) {
+  const insets = useSafeAreaInsets();
   const { profile } = useAuth();
   const [allRequests, setAllRequests] = useState<BloodRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,17 +80,20 @@ export default function HelplineDashboardScreen({ navigation }: any) {
             Manage blood requests & escalations
           </Text>
         </View>
-        <TouchableOpacity
-          style={styles.addBtn}
-          onPress={() => navigation.navigate("AddBloodRequest")}
-        >
-          <Ionicons name="add" size={22} color={COLORS.white} />
-        </TouchableOpacity>
+        <View style={{ flexDirection: "row", gap: 8 }}>
+          <NotificationBell onPress={() => navigation.navigate("Notifications")} />
+          <TouchableOpacity
+            style={styles.addBtn}
+            onPress={() => navigation.navigate("AddBloodRequest")}
+          >
+            <Ionicons name="add" size={22} color={COLORS.white} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 100 }]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -238,7 +244,6 @@ export default function HelplineDashboardScreen({ navigation }: any) {
             />
           ))
         )}
-        <View style={{ height: 40 }} />
       </ScrollView>
     </View>
   );

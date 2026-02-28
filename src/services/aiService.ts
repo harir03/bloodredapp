@@ -1,7 +1,7 @@
 import { firebaseConfig } from "../config/env";
 
 const GEMINI_API_KEY = firebaseConfig.geminiApiKey || firebaseConfig.apiKey;
-const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
 export type NotificationTarget = "donor" | "volunteer";
 

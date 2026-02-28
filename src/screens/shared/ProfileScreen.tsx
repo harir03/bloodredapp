@@ -239,6 +239,24 @@ export default function ProfileScreen({ navigation }: any) {
           </View>
         </View>
 
+        {/* Certificates */}
+        <TouchableOpacity
+          style={styles.card}
+          onPress={() => navigation.navigate("Certificates")}
+          activeOpacity={0.8}
+        >
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+            <View style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: "#8B5CF6" + "18", alignItems: "center", justifyContent: "center" }}>
+              <Ionicons name="ribbon-outline" size={20} color="#8B5CF6" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardTitle}>My Certificates</Text>
+              <Text style={{ ...FONTS.caption, color: COLORS.text_muted }}>View & share your certificates</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={COLORS.text_muted} />
+          </View>
+        </TouchableOpacity>
+
         {/* Logout */}
         <TouchableOpacity
           style={styles.logoutBtn}

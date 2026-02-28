@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KPICard } from "../../components/ui/KPICard";
+import { NotificationBell } from "../../components/ui/NotificationBell";
 import { KPISkeleton } from "../../components/ui/SkeletonLoader";
 import { COLORS, FONTS, RADII, SPACING } from "../../constants/theme";
 import { helplineService, taskService, volunteerService } from "../../services";
@@ -78,6 +79,7 @@ export default function CityManagerDashboardScreen({ navigation }: any) {
   return (
     <ScrollView
       style={styles.container}
+      contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
       showsVerticalScrollIndicator={false}
       refreshControl={
         <RefreshControl
@@ -95,16 +97,7 @@ export default function CityManagerDashboardScreen({ navigation }: any) {
             {userName?.split(" ")[0] ?? "Manager"} 🏙️
           </Text>
         </View>
-        <TouchableOpacity
-          style={styles.notifBtn}
-          onPress={() => navigation.navigate("Notifications")}
-        >
-          <Ionicons
-            name="notifications-outline"
-            size={22}
-            color={COLORS.text_primary}
-          />
-        </TouchableOpacity>
+        <NotificationBell onPress={() => navigation.navigate("Notifications")} />
       </View>
 
       {/* KPI Grid */}

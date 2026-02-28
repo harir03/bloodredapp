@@ -1,4 +1,5 @@
 // Barrel export for all services
+export { bloodRequestService } from "./bloodRequestService";
 export { donorService } from "./donorService";
 export { eventService } from "./eventService";
 export { helplineService } from "./helplineService";

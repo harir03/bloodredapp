@@ -11,6 +11,13 @@ export const exportToCSV = async (filename: string, data: any[], headers?: strin
 
     // Construct CSV string
     const csvRows = [];
+
+    // Add Metadata (Professional Touch)
+    csvRows.push(`"Report: ${filename}"`);
+    csvRows.push(`"Export Date: ${new Date().toLocaleString()}"`);
+    csvRows.push(`"Total Records: ${data.length}"`);
+    csvRows.push(""); // Spacer
+
     // Heading row
     csvRows.push(keys.join(","));
 

@@ -7,6 +7,7 @@ import {
   StyleSheet,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AppButton from "../../components/ui/AppButton";
 import EmptyState from "../../components/ui/EmptyState";
 import ListItem from "../../components/ui/ListItem";
@@ -18,6 +19,7 @@ import { Volunteer } from "../../types/database";
 import { exportToCSV } from "../../utils/exportUtils";
 
 const ManageVolunteersScreen = ({ navigation }: any) => {
+  const insets = useSafeAreaInsets();
   const {
     data: volunteers,
     loading,
@@ -61,7 +63,7 @@ const ManageVolunteersScreen = ({ navigation }: any) => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { padding: SPACING.m, paddingBottom: insets.bottom + 80 }]}>
       <SectionHeader title="Manage Volunteers" />
       {loading && volunteers.length === 0 ? (
         <ActivityIndicator
@@ -107,7 +109,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
-    padding: SPACING.m,
   },
 });
 

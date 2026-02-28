@@ -3,7 +3,9 @@ import { useCallback, useEffect, useState } from "react";
 import {
   Alert,
   FlatList,
+  Modal,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -13,7 +15,8 @@ import {
 import { BloodGroupBadge } from "../../components/ui/BloodGroupBadge";
 import { COLORS, FONTS, RADII, SPACING } from "../../constants/theme";
 import { donorService } from "../../services/donorService";
-import { Donor } from "../../types/database";
+import { useAuth } from "../../stores/AuthProvider";
+import { Donor, DonorRemark } from "../../types/database";
 import { exportToCSV } from "../../utils/exportUtils";
 
 const STATUS_COLOR: Record<string, string> = {
@@ -23,11 +26,19 @@ const STATUS_COLOR: Record<string, string> = {
 };
 
 export default function ManageDonorsScreen({ navigation }: any) {
+  const { profile } = useAuth();
   const [donors, setDonors] = useState<Donor[]>([]);
   const [filtered, setFiltered] = useState<Donor[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Modal State
+  const [selectedDonor, setSelectedDonor] = useState<Donor | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [newRemark, setNewRemark] = useState("");
+  const [remarkType, setRemarkType] = useState<DonorRemark["type"]>("general");
+  const [submittingRemark, setSubmittingRemark] = useState(false);
 
   const fetchDonors = useCallback(async () => {
     try {
@@ -35,12 +46,18 @@ export default function ManageDonorsScreen({ navigation }: any) {
       const list = data ?? [];
       setDonors(list);
       setFiltered(list);
+
+      // Update selected donor if modal is open
+      if (selectedDonor) {
+        const updated = list.find(d => d.id === selectedDonor.id);
+        if (updated) setSelectedDonor(updated);
+      }
     } catch (_) {
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [selectedDonor]);
 
   useEffect(() => {
     fetchDonors();
@@ -64,10 +81,32 @@ export default function ManageDonorsScreen({ navigation }: any) {
     );
   }, [query, donors]);
 
-  const handleLogDonation = (donor: Donor) => {
+  const handleAddRemark = async () => {
+    if (!selectedDonor || !newRemark.trim()) return;
+
+    setSubmittingRemark(true);
+    try {
+      await donorService.addRemark(selectedDonor.id, {
+        date: new Date().toISOString(),
+        authorId: profile?.id || "unknown",
+        authorName: profile?.name || "Volunteer",
+        text: newRemark.trim(),
+        type: remarkType,
+      });
+      setNewRemark("");
+      Alert.alert("Success", "Note added successfully.");
+      fetchDonors();
+    } catch (e) {
+      Alert.alert("Error", "Could not add note.");
+    } finally {
+      setSubmittingRemark(false);
+    }
+  };
+
+  const handleLogDonation = async (donor: Donor) => {
     Alert.alert(
       "Log Donation",
-      `Did ${donor.name} donate blood recently?\nLogging this will record 1 unit and mark them as deferred.`,
+      `Did ${donor.name} donate blood recently?`,
       [
         { text: "Cancel", style: "cancel" },
         {
@@ -75,8 +114,8 @@ export default function ManageDonorsScreen({ navigation }: any) {
           onPress: async () => {
             try {
               await donorService.logDonation(donor.id, 1, "Direct Walk-in");
-              Alert.alert("Success", "Donation logged. Donor is now deferred.");
-              fetchDonors(); // refresh the list
+              Alert.alert("Success", "Donation logged.");
+              fetchDonors();
             } catch (e) {
               Alert.alert("Error", "Could not log donation.");
             }
@@ -120,7 +159,10 @@ export default function ManageDonorsScreen({ navigation }: any) {
       <TouchableOpacity
         style={styles.card}
         activeOpacity={0.75}
-        onPress={() => handleLogDonation(item)}
+        onPress={() => {
+          setSelectedDonor(item);
+          setShowModal(true);
+        }}
       >
         {/* Left: blood group badge */}
         <View style={styles.badgeCol}>
@@ -246,6 +288,118 @@ export default function ManageDonorsScreen({ navigation }: any) {
           </View>
         }
       />
+
+      {/* Donor Details & Notes Modal */}
+      <Modal
+        visible={showModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Donor Details</Text>
+              <TouchableOpacity onPress={() => setShowModal(false)}>
+                <Ionicons name="close" size={24} color={COLORS.text_primary} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+              {selectedDonor && (
+                <>
+                  <View style={styles.donorHero}>
+                    <BloodGroupBadge group={(selectedDonor.bloodGroup || selectedDonor.blood_group || "O+") as any} size="lg" />
+                    <View style={styles.donorHeroInfo}>
+                      <Text style={styles.donorName}>{selectedDonor.name}</Text>
+                      <Text style={styles.donorMeta}>{selectedDonor.phone}</Text>
+                      <Text style={styles.donorMeta}>{selectedDonor.city}, {selectedDonor.area}</Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.statsRow}>
+                    <View style={styles.statBox}>
+                      <Text style={styles.statVal}>{selectedDonor.totalDonations || selectedDonor.total_donations || 0}</Text>
+                      <Text style={styles.statLab}>Donations</Text>
+                    </View>
+                    <View style={styles.statBox}>
+                      <Text style={styles.statVal}>{selectedDonor.lastDonationDate ? "3mo ago" : "Never"}</Text>
+                      <Text style={styles.statLab}>Last Time</Text>
+                    </View>
+                    <TouchableOpacity
+                      style={[styles.statBox, { backgroundColor: COLORS.primary + "11" }]}
+                      onPress={() => handleLogDonation(selectedDonor)}
+                    >
+                      <Ionicons name="add-circle" size={20} color={COLORS.primary} />
+                      <Text style={[styles.statLab, { color: COLORS.primary }]}>Log New</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <Text style={styles.sectionTab}>NOTES & REMARKS</Text>
+
+                  {/* Add Remark */}
+                  <View style={styles.addRemarkBox}>
+                    <TextInput
+                      style={styles.remarkInput}
+                      placeholder="Add a medical or behavioral note..."
+                      placeholderTextColor={COLORS.text_muted}
+                      value={newRemark}
+                      onChangeText={setNewRemark}
+                      multiline
+                    />
+                    <View style={styles.remarkActions}>
+                      <View style={styles.typeRow}>
+                        {(["general", "medical", "behavioral"] as const).map(t => (
+                          <TouchableOpacity
+                            key={t}
+                            onPress={() => setRemarkType(t)}
+                            style={[
+                              styles.typeBtn,
+                              remarkType === t && { backgroundColor: COLORS.primary, borderColor: COLORS.primary }
+                            ]}
+                          >
+                            <Text style={[styles.typeBtnText, remarkType === t && { color: COLORS.white }]}>
+                              {t.charAt(0).toUpperCase() + t.slice(1)}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                      <TouchableOpacity
+                        style={[styles.postBtn, (!newRemark.trim() || submittingRemark) && { opacity: 0.5 }]}
+                        onPress={handleAddRemark}
+                        disabled={!newRemark.trim() || submittingRemark}
+                      >
+                        <Ionicons name="send" size={16} color={COLORS.white} />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+
+                  {/* Remarks List */}
+                  <View style={styles.remarksList}>
+                    {(selectedDonor.remarks || []).slice().reverse().map((r) => (
+                      <View key={r.id} style={styles.remarkItem}>
+                        <View style={styles.remarkHeader}>
+                          <Text style={styles.remarkAuthor}>{r.authorName}</Text>
+                          <View style={[styles.typeTag, { backgroundColor: r.type === "medical" ? COLORS.danger + "11" : r.type === "behavioral" ? COLORS.warning + "11" : COLORS.info + "11" }]}>
+                            <Text style={[styles.typeTagText, { color: r.type === "medical" ? COLORS.danger : r.type === "behavioral" ? COLORS.warning : COLORS.info }]}>
+                              {r.type}
+                            </Text>
+                          </View>
+                          <Text style={styles.remarkDate}>{new Date(r.date).toLocaleDateString()}</Text>
+                        </View>
+                        <Text style={styles.remarkText}>{r.text}</Text>
+                      </View>
+                    ))}
+                    {(!selectedDonor.remarks || selectedDonor.remarks.length === 0) && (
+                      <Text style={styles.noRemarks}>No notes recorded for this donor yet.</Text>
+                    )}
+                  </View>
+                </>
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -331,4 +485,106 @@ const styles = StyleSheet.create({
 
   empty: { alignItems: "center", paddingTop: SPACING.xxxl * 2, gap: SPACING.m },
   emptyText: { ...FONTS.body, color: COLORS.text_muted },
+
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    backgroundColor: COLORS.background,
+    borderTopLeftRadius: RADII.xl,
+    borderTopRightRadius: RADII.xl,
+    height: "85%",
+    paddingBottom: 40,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: SPACING.l,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  modalTitle: { ...FONTS.h3, color: COLORS.text_primary },
+  modalBody: { padding: SPACING.l },
+
+  donorHero: { flexDirection: "row", alignItems: "center", marginBottom: SPACING.xl, gap: SPACING.m },
+  donorHeroInfo: { flex: 1 },
+  donorName: { ...FONTS.h2, color: COLORS.text_primary },
+  donorMeta: { ...FONTS.body, color: COLORS.text_secondary, marginTop: 2 },
+
+  statsRow: { flexDirection: "row", gap: SPACING.s, marginBottom: SPACING.xl },
+  statBox: {
+    flex: 1,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADII.m,
+    padding: SPACING.m,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  statVal: { ...FONTS.h4, color: COLORS.text_primary },
+  statLab: { ...FONTS.caption, color: COLORS.text_muted, marginTop: 2 },
+
+  sectionTab: { ...FONTS.caption, letterSpacing: 1, color: COLORS.text_muted, marginBottom: SPACING.m },
+
+  addRemarkBox: {
+    backgroundColor: COLORS.surface,
+    borderRadius: RADII.m,
+    padding: SPACING.m,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    marginBottom: SPACING.xl,
+  },
+  remarkInput: {
+    ...FONTS.body,
+    color: COLORS.text_primary,
+    minHeight: 60,
+    textAlignVertical: "top",
+  },
+  remarkActions: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: SPACING.m,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+    paddingTop: SPACING.m,
+  },
+  typeRow: { flexDirection: "row", gap: 6 },
+  typeBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: RADII.s,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  typeBtnText: { fontSize: 10, color: COLORS.text_secondary, fontWeight: "600" },
+  postBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: COLORS.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  remarksList: { gap: SPACING.m },
+  remarkItem: {
+    padding: SPACING.m,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADII.m,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  remarkHeader: { flexDirection: "row", alignItems: "center", marginBottom: 6, gap: 8 },
+  remarkAuthor: { ...FONTS.body, fontWeight: "600", color: COLORS.text_primary },
+  remarkDate: { ...FONTS.caption, color: COLORS.text_muted, marginLeft: "auto" },
+  remarkText: { ...FONTS.body, color: COLORS.text_secondary, lineHeight: 20 },
+  typeTag: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
+  typeTagText: { fontSize: 9, fontWeight: "700", textTransform: "uppercase" },
+  noRemarks: { ...FONTS.body, color: COLORS.text_muted, textAlign: "center", marginTop: 20 },
 });

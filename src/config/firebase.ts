@@ -34,9 +34,12 @@ try {
 }
 export { firebaseAuth };
 
-// Firestore database instance with long-polling enabled for React Native stability
+// Firestore database instance with offline persistence enabled for React Native stability
 export const db = initializeFirestore(app, {
   experimentalForceLongPolling: true,
+  localCache: {
+    kind: "persistent",
+  },
 });
 
 export default app;

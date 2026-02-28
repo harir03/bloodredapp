@@ -54,6 +54,12 @@ export const BADGES: Record<
     emoji: "🏆",
     description: "The stuff of legends. Earned 1000 points."
   },
+  lifesaver: {
+    label: "Lifesaver",
+    minPoints: 0,
+    emoji: "❤️‍🩹",
+    description: "Your blood saved a life! Thank you for your incredible contribution."
+  },
 };
 
 export const POINTS = {

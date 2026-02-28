@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KPICard } from "../../components/ui/KPICard";
+import { NotificationBell } from "../../components/ui/NotificationBell";
 import { CardSkeleton } from "../../components/ui/SkeletonLoader";
 import { StatusPill } from "../../components/ui/StatusPill";
 import { COLORS, FONTS, SPACING } from "../../constants/theme";
@@ -109,7 +110,7 @@ export default function VolunteerDashboardScreen({ navigation }: any) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scroll,
-          { paddingTop: insets.top + SPACING.l }
+          { paddingTop: insets.top + SPACING.l, paddingBottom: insets.bottom + 100 }
         ]}
         refreshControl={
           <RefreshControl
@@ -137,6 +138,7 @@ export default function VolunteerDashboardScreen({ navigation }: any) {
               <Text style={styles.pointsText}>{points} pts</Text>
             </View>
           </View>
+          <NotificationBell onPress={() => navigation.navigate("Notifications")} />
           <TouchableOpacity
             style={styles.profileBtn}
             onPress={() => navigation.navigate("Profile")}
@@ -180,7 +182,7 @@ export default function VolunteerDashboardScreen({ navigation }: any) {
               showsHorizontalScrollIndicator={false}
               style={{ marginBottom: SPACING.l }}
             >
-              {badges.map((b) => {
+              {badges.map((b: string) => {
                 const info = BADGES[b];
                 if (!info) return null;
                 return (
@@ -360,6 +362,12 @@ export default function VolunteerDashboardScreen({ navigation }: any) {
               color: COLORS.primary,
               screen: "Notifications",
             },
+            {
+              icon: "water-outline" as const,
+              label: "Add Pouch",
+              color: COLORS.danger,
+              screen: "AddBloodPouch",
+            },
           ].map((q) => (
             <TouchableOpacity
               key={q.label}
@@ -376,7 +384,6 @@ export default function VolunteerDashboardScreen({ navigation }: any) {
           ))}
         </View>
 
-        <View style={{ height: 100 + insets.bottom }} />
       </ScrollView>
     </View>
   );

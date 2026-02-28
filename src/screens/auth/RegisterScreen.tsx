@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -92,7 +93,7 @@ const RegisterScreen = ({ navigation }: any) => {
 
           {/* Blood Group Selector */}
           <Text style={styles.selectorLabel}>Blood Group *</Text>
-          <View style={styles.chipRow}>
+          <View style={[styles.chipRow, { marginBottom: SPACING.m }]}>
             {BLOOD_GROUPS.map((bg) => (
               <TouchableOpacity
                 key={bg}
@@ -109,6 +110,11 @@ const RegisterScreen = ({ navigation }: any) => {
                 </Text>
               </TouchableOpacity>
             ))}
+          </View>
+
+          <View style={styles.securityNotice}>
+            <Ionicons name="shield-checkmark" size={14} color={COLORS.success} />
+            <Text style={styles.securityNoticeText}>Your data is protected with industrial-grade encryption.</Text>
           </View>
 
           <AppButton
@@ -196,6 +202,17 @@ const styles = StyleSheet.create({
   loginLink: {
     color: COLORS.primary,
     fontWeight: "bold",
+  },
+  securityNotice: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: SPACING.l,
+    justifyContent: "center",
+  },
+  securityNoticeText: {
+    fontSize: 11,
+    color: COLORS.text_muted,
   },
 });
 

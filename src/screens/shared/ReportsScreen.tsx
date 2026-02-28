@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useState } from "react";
 import {
+  Dimensions,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -8,9 +9,13 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import {
+  BarChart,
+  LineChart,
+  PieChart,
+} from "react-native-chart-kit";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KPICard } from "../../components/ui/KPICard";
-import { KPISkeleton } from "../../components/ui/SkeletonLoader";
 import { COLORS, FONTS, RADII, SPACING } from "../../constants/theme";
 import { bloodRequestService } from "../../services/bloodRequestService";
 import { donorService } from "../../services/donorService";
@@ -19,12 +24,7 @@ import { staffService } from "../../services/staffService";
 import { taskService } from "../../services/taskService";
 import { volunteerService } from "../../services/volunteerService";
 
-type StatSection = {
-  title: string;
-  icon: string;
-  color: string;
-  items: { label: string; value: string | number }[];
-};
+const screenWidth = Dimensions.get("window").width;
 
 export default function ReportsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -43,6 +43,10 @@ export default function ReportsScreen({ navigation }: any) {
     upcomingEvents: 0,
   });
 
+  const [dailyData, setDailyData] = useState<{ labels: string[]; datasets: { data: number[] }[] } | null>(null);
+  const [cityData, setCityData] = useState<{ labels: string[]; datasets: { data: number[] }[] } | null>(null);
+  const [taskData, setTaskData] = useState<any[]>([]);
+
   const fetchData = useCallback(async () => {
     try {
       const [
@@ -54,6 +58,9 @@ export default function ReportsScreen({ navigation }: any) {
         tasks,
         completedTasks,
         events,
+        daily,
+        cities,
+        taskStats,
       ] = await Promise.all([
         volunteerService.getAll(),
         volunteerService.getAll({ filters: { status: "active" } }),
@@ -63,6 +70,9 @@ export default function ReportsScreen({ navigation }: any) {
         taskService.getAll(),
         taskService.getAll({ filters: { status: "completed" } }),
         eventService.getUpcoming(),
+        bloodRequestService.getDailyStats(),
+        bloodRequestService.getStatsByCity(),
+        taskService.getCompletionStats(),
       ]);
 
       setKpis({
@@ -77,8 +87,21 @@ export default function ReportsScreen({ navigation }: any) {
         completedTasks: completedTasks.data?.length ?? 0,
         upcomingEvents: events.data?.length ?? 0,
       });
+
+      setDailyData({
+        labels: daily.labels,
+        datasets: [{ data: daily.data.length > 0 ? daily.data : [0, 0, 0, 0, 0, 0, 0] }]
+      });
+
+      setCityData({
+        labels: cities.labels,
+        datasets: [{ data: cities.data.length > 0 ? cities.data : [0] }]
+      });
+
+      setTaskData(taskStats);
+
     } catch (e) {
-      // fail silently — show zeros
+      console.error("Reports loading error:", e);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -94,214 +117,124 @@ export default function ReportsScreen({ navigation }: any) {
     fetchData();
   };
 
-  const sections: StatSection[] = [
-    {
-      title: "Volunteers",
-      icon: "people",
-      color: COLORS.primary,
-      items: [
-        { label: "Total Volunteers", value: kpis.totalVolunteers },
-        { label: "Active Volunteers", value: kpis.activeVolunteers },
-        {
-          label: "Inactive",
-          value: kpis.totalVolunteers - kpis.activeVolunteers,
-        },
-        {
-          label: "Activation Rate",
-          value:
-            kpis.totalVolunteers > 0
-              ? `${Math.round((kpis.activeVolunteers / kpis.totalVolunteers) * 100)}%`
-              : "—",
-        },
-      ],
+  const chartConfig = {
+    backgroundGradientFrom: COLORS.surface,
+    backgroundGradientTo: COLORS.surface,
+    color: (opacity = 1) => `rgba(239, 68, 68, ${opacity})`,
+    labelColor: (opacity = 1) => `rgba(107, 114, 128, ${opacity})`,
+    strokeWidth: 2,
+    barPercentage: 0.6,
+    useShadowColorFromDataset: false,
+    decimalPlaces: 0,
+    propsForDots: {
+      r: "4",
+      strokeWidth: "2",
+      stroke: COLORS.primary
     },
-    {
-      title: "Blood Requests",
-      icon: "water",
-      color: COLORS.danger,
-      items: [
-        {
-          label: "Total",
-          value:
-            kpis.openRequests + kpis.resolvedRequests + kpis.criticalRequests,
-        },
-        { label: "Open / Pending", value: kpis.openRequests },
-        { label: "Critical", value: kpis.criticalRequests },
-        { label: "Resolved", value: kpis.resolvedRequests },
-      ],
-    },
-    {
-      title: "Tasks",
-      icon: "checkmark-circle",
-      color: COLORS.success,
-      items: [
-        { label: "Total Tasks", value: kpis.totalTasks },
-        { label: "Completed", value: kpis.completedTasks },
-        {
-          label: "Pending",
-          value: kpis.totalTasks - kpis.completedTasks,
-        },
-        {
-          label: "Completion Rate",
-          value:
-            kpis.totalTasks > 0
-              ? `${Math.round((kpis.completedTasks / kpis.totalTasks) * 100)}%`
-              : "—",
-        },
-      ],
-    },
-    {
-      title: "People & Events",
-      icon: "stats-chart",
-      color: COLORS.warning,
-      items: [
-        { label: "Total Donors", value: kpis.totalDonors },
-        { label: "Total Staff", value: kpis.totalStaff },
-        { label: "Upcoming Events", value: kpis.upcomingEvents },
-      ],
-    },
-  ];
+    fillShadowGradient: COLORS.primary,
+    fillShadowGradientOpacity: 0.1,
+  };
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + SPACING.s }]}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backBtn}
-        >
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={22} color={COLORS.text_primary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Reports & Analytics</Text>
+        <Text style={styles.headerTitle}>Analytics Dashboard</Text>
         <TouchableOpacity style={styles.refreshBtn} onPress={onRefresh}>
           <Ionicons name="refresh" size={20} color={COLORS.primary} />
         </TouchableOpacity>
       </View>
 
       <ScrollView
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 100 }]}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={COLORS.primary}
-          />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />
         }
       >
-        {/* KPI Overview Row */}
-        <Text style={styles.sectionTitle}>Overview</Text>
-        {loading ? (
-          <View style={styles.kpiGrid}>
-            {[...Array(6)].map((_, i) => (
-              <View key={i} style={styles.kpiWrap}>
-                <KPISkeleton />
-              </View>
-            ))}
+        <Text style={styles.sectionTitle}>Key Performance Indicators</Text>
+        <View style={styles.kpiGrid}>
+          <View style={styles.kpiWrap}>
+            <KPICard label="Volunteers" value={kpis.totalVolunteers} icon="people" color={COLORS.primary} compact />
           </View>
-        ) : (
-          <View style={styles.kpiGrid}>
-            <View style={styles.kpiWrap}>
-              <KPICard
-                label="Volunteers"
-                value={kpis.totalVolunteers}
-                icon="people"
-                color={COLORS.primary}
-                compact
-              />
-            </View>
-            <View style={styles.kpiWrap}>
-              <KPICard
-                label="Donors"
-                value={kpis.totalDonors}
-                icon="heart"
-                color={COLORS.danger}
-                compact
-              />
-            </View>
-            <View style={styles.kpiWrap}>
-              <KPICard
-                label="Open Requests"
-                value={kpis.openRequests}
-                icon="water"
-                color={COLORS.warning}
-                compact
-              />
-            </View>
-            <View style={styles.kpiWrap}>
-              <KPICard
-                label="Resolved"
-                value={kpis.resolvedRequests}
-                icon="checkmark-circle"
-                color={COLORS.success}
-                compact
-              />
-            </View>
-            <View style={styles.kpiWrap}>
-              <KPICard
-                label="Tasks Done"
-                value={kpis.completedTasks}
-                icon="list"
-                color={COLORS.info ?? COLORS.primary}
-                compact
-              />
-            </View>
-            <View style={styles.kpiWrap}>
-              <KPICard
-                label="Events"
-                value={kpis.upcomingEvents}
-                icon="calendar"
-                color="#9C27B0"
-                compact
-              />
-            </View>
+          <View style={styles.kpiWrap}>
+            <KPICard label="Donors" value={kpis.totalDonors} icon="heart" color={COLORS.danger} compact />
           </View>
-        )}
+          <View style={styles.kpiWrap}>
+            <KPICard label="Active Requests" value={kpis.openRequests} icon="water" color={COLORS.warning} compact />
+          </View>
+          <View style={styles.kpiWrap}>
+            <KPICard label="Resolved" value={kpis.resolvedRequests} icon="checkmark-done" color={COLORS.success} compact />
+          </View>
+        </View>
 
-        {/* Detailed Sections */}
-        {sections.map((section) => (
-          <View key={section.title} style={styles.card}>
-            <View style={styles.cardHeader}>
-              <View
-                style={[
-                  styles.iconCircle,
-                  { backgroundColor: section.color + "22" },
-                ]}
-              >
-                <Ionicons
-                  name={section.icon as any}
-                  size={18}
-                  color={section.color}
-                />
-              </View>
-              <Text style={styles.cardTitle}>{section.title}</Text>
-            </View>
-            {loading ? (
-              <View style={{ gap: 8 }}>
-                {[...Array(4)].map((_, i) => (
-                  <View key={i} style={styles.skeletonRow} />
-                ))}
-              </View>
-            ) : (
-              section.items.map((item, idx) => (
-                <View
-                  key={item.label}
-                  style={[
-                    styles.statRow,
-                    idx < section.items.length - 1 && styles.statRowBorder,
-                  ]}
-                >
-                  <Text style={styles.statLabel}>{item.label}</Text>
-                  <Text style={[styles.statValue, { color: section.color }]}>
-                    {item.value}
-                  </Text>
+        {/* Real-time Activity Trend */}
+        <View style={styles.chartCard}>
+          <Text style={styles.chartTitle}>7-Day Blood Requests Trend</Text>
+          {dailyData && (
+            <LineChart
+              data={dailyData}
+              width={screenWidth - SPACING.m * 3}
+              height={180}
+              chartConfig={chartConfig}
+              bezier
+              style={styles.chart}
+              withInnerLines={false}
+              withOuterLines={false}
+            />
+          )}
+        </View>
+
+        <View style={styles.row}>
+          {/* Task Completion Pie */}
+          <View style={[styles.chartCard, { flex: 1, marginRight: SPACING.s }]}>
+            <Text style={styles.chartTitle}>Task Status</Text>
+            {taskData.length > 0 && (
+              <PieChart
+                data={taskData}
+                width={screenWidth / 2}
+                height={120}
+                chartConfig={chartConfig}
+                accessor="population"
+                backgroundColor="transparent"
+                paddingLeft="15"
+                center={[0, 0]}
+                hasLegend={false}
+              />
+            )}
+            <View style={styles.legend}>
+              {taskData.map(item => (
+                <View key={item.name} style={styles.legendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: item.color }]} />
+                  <Text style={styles.legendText}>{item.name}</Text>
                 </View>
-              ))
+              ))}
+            </View>
+          </View>
+
+          {/* City Stats Bar */}
+          <View style={[styles.chartCard, { flex: 1 }]}>
+            <Text style={styles.chartTitle}>Top Cities</Text>
+            {cityData && (
+              <BarChart
+                data={cityData}
+                width={screenWidth / 2}
+                height={150}
+                yAxisLabel=""
+                yAxisSuffix=""
+                chartConfig={{ ...chartConfig, barPercentage: 0.5 }}
+                verticalLabelRotation={30}
+                style={styles.chart}
+                fromZero={true}
+                withInnerLines={false}
+              />
             )}
           </View>
-        ))}
+        </View>
 
-        <View style={{ height: SPACING.xl }} />
+        <View style={{ height: 20 }} />
       </ScrollView>
     </View>
   );
@@ -337,60 +270,23 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   scroll: { padding: SPACING.m },
-  sectionTitle: {
-    ...FONTS.h4,
-    color: COLORS.text_primary,
-    marginBottom: SPACING.m,
-  },
-  kpiGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginHorizontal: -SPACING.xs,
-    marginBottom: SPACING.l,
-  },
-  kpiWrap: {
-    width: "50%",
-    paddingHorizontal: SPACING.xs,
-    marginBottom: SPACING.s,
-  },
-  card: {
+  sectionTitle: { ...FONTS.h4, color: COLORS.text_primary, marginBottom: SPACING.m },
+  kpiGrid: { flexDirection: "row", flexWrap: "wrap", marginHorizontal: -SPACING.xs, marginBottom: SPACING.m },
+  kpiWrap: { width: "50%", paddingHorizontal: SPACING.xs, marginBottom: SPACING.s },
+  chartCard: {
     backgroundColor: COLORS.surface,
     borderRadius: RADII.l,
     padding: SPACING.m,
     marginBottom: SPACING.m,
     borderWidth: 1,
     borderColor: COLORS.border,
+    alignItems: "center"
   },
-  cardHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: SPACING.m,
-  },
-  iconCircle: {
-    width: 34,
-    height: 34,
-    borderRadius: RADII.full,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: SPACING.s,
-  },
-  cardTitle: { ...FONTS.h4, color: COLORS.text_primary },
-  statRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: SPACING.s,
-  },
-  statRowBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  statLabel: { ...FONTS.body, color: COLORS.text_secondary },
-  statValue: { ...FONTS.h4, minWidth: 50, textAlign: "right" },
-  skeletonRow: {
-    height: 16,
-    borderRadius: RADII.s,
-    backgroundColor: COLORS.border,
-    marginBottom: 8,
-  },
+  chartTitle: { ...FONTS.caption, color: COLORS.text_secondary, marginBottom: SPACING.m, alignSelf: "flex-start", fontWeight: "600" as any },
+  chart: { marginVertical: 8, borderRadius: 16, paddingRight: 40 },
+  row: { flexDirection: "row" },
+  legend: { marginTop: 8, gap: 4, alignSelf: "flex-start" },
+  legendItem: { flexDirection: "row", alignItems: "center", gap: 6 },
+  legendDot: { width: 8, height: 8, borderRadius: 4 },
+  legendText: { fontSize: 10, color: COLORS.text_secondary },
 });

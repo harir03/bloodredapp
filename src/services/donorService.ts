@@ -72,7 +72,37 @@ export const donorService = {
       total_donations: prevTotal + 1,
       status: "deferred" // Prevents call algorithms from pinging them
     });
-  }
+  },
+
+  addRemark: async (
+    id: string,
+    remark: Omit<import("../types/database").DonorRemark, "id">,
+  ): Promise<void> => {
+    const ref = doc(db, TABLE, id);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) throw new Error("Donor not found");
+    const data = snap.data() as import("../types/database").Donor;
+
+    const newRemark = {
+      ...remark,
+      id: Math.random().toString(36).substring(2, 9), // Simple ID for now
+    };
+
+    const remarks = data.remarks || [];
+
+    await updateDoc(ref, {
+      remarks: [...remarks, newRemark],
+      updated_at: new Date().toISOString(),
+    });
+  },
+
+  getRemarks: async (id: string): Promise<import("../types/database").DonorRemark[]> => {
+    const ref = doc(db, TABLE, id);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return [];
+    const data = snap.data() as import("../types/database").Donor;
+    return data.remarks || [];
+  },
 };
 
 export default donorService;

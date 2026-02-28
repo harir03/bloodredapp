@@ -2,6 +2,8 @@ import {
   collection,
   doc,
   getCountFromServer,
+  getDoc,
+  getDocs,
   onSnapshot,
   orderBy,
   query,
@@ -30,9 +32,34 @@ export const taskService = {
   getById: (id: string): Promise<ServiceResult<Task>> =>
     fetchById<Task>(TABLE, id),
 
-  create: (
+  create: async (
     task: Omit<Task, "id" | "created_at" | "updated_at">,
-  ): Promise<ServiceResult<Task>> => create<Task>(TABLE, task),
+  ): Promise<ServiceResult<Task>> => {
+    const result = await create<Task>(TABLE, task);
+    if (result.data) {
+      // Send notification to the assigned volunteer
+      try {
+        const { notificationService } = require("./notificationService");
+        const vId = task.assignedTo || task.assigned_to;
+        if (vId) {
+          // Fetch volunteer's push token
+          const vSnap = await getDoc(doc(db, "profiles", vId));
+          const pushToken = vSnap.exists() ? vSnap.data().expoPushToken : undefined;
+
+          await notificationService.send({
+            userId: vId,
+            title: "New Task Assigned",
+            body: `You have been assigned a new task: ${task.title}`,
+            type: "task_assigned",
+            linkedEntity: { type: "task", id: result.data.id }
+          }, pushToken);
+        }
+      } catch (e) {
+        console.error("Error sending task notification:", e);
+      }
+    }
+    return result;
+  },
 
   update: (id: string, updates: Partial<Task>): Promise<ServiceResult<Task>> =>
     update<Task>(TABLE, id, updates),
@@ -278,6 +305,31 @@ export const taskService = {
       console.error("[Maintenance] Global sync failed:", e);
       return { updated: 0, error: e.message };
     }
+  },
+
+  async getCompletionStats(): Promise<{ name: string; population: number; color: string; legendFontColor: string; legendFontSize: number }[]> {
+    const all = await getDocs(collection(db, TABLE));
+    const items = all.docs.map((d) => d.data() as Task);
+
+    const counts: Record<string, number> = {
+      completed: 0,
+      pending: 0,
+      in_progress: 0,
+      cancelled: 0
+    };
+
+    items.forEach(item => {
+      if (item.status && counts[item.status] !== undefined) {
+        counts[item.status]++;
+      }
+    });
+
+    return [
+      { name: "Completed", population: counts.completed, color: "#4CAF50", legendFontColor: "#7F7F7F", legendFontSize: 12 },
+      { name: "Pending", population: counts.pending, color: "#FFC107", legendFontColor: "#7F7F7F", legendFontSize: 12 },
+      { name: "In Progress", population: counts.in_progress, color: "#2196F3", legendFontColor: "#7F7F7F", legendFontSize: 12 },
+      { name: "Cancelled", population: counts.cancelled, color: "#F44336", legendFontColor: "#7F7F7F", legendFontSize: 12 }
+    ];
   }
 };
 

@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ListItemSkeleton } from "../../components/ui/SkeletonLoader";
 import { COLORS, FONTS, SPACING } from "../../constants/theme";
 import { leaderboardService } from "../../services/leaderboardService";
+import { useAuth } from "../../stores/AuthProvider";
 import { CityLeaderboard, LeaderboardEntry } from "../../types/database";
 
 const RANK_COLORS = ["#FFD700", "#C0C0C0", "#CD7F32"];
@@ -59,6 +60,7 @@ function PodiumCard({
 
 export default function LeaderboardScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const { profile } = useAuth();
   const [boards, setBoards] = useState<CityLeaderboard[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -69,7 +71,14 @@ export default function LeaderboardScreen({ navigation }: any) {
     try {
       const data = await leaderboardService.getAllCities();
       setBoards(data);
-      if (!selected && data.length > 0) setSelected(data[0].id);
+
+      // Auto-select logic: User's city first, then first available city
+      const userCity = profile?.city?.toLowerCase();
+      if (userCity && data.find(b => b.id.toLowerCase() === userCity)) {
+        setSelected(data.find(b => b.id.toLowerCase() === userCity)!.id);
+      } else if (!selected && data.length > 0) {
+        setSelected(data[0].id);
+      }
     } catch (e) {
       console.log("Load leaderboard error:", e);
     } finally {
@@ -105,32 +114,42 @@ export default function LeaderboardScreen({ navigation }: any) {
       </View>
 
       {/* City Tabs */}
-      {boards.length > 1 && (
-        <FlatList
-          horizontal
-          data={boards}
-          keyExtractor={(b) => b.id}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.cityTabs}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={[
-                styles.cityTab,
-                selected === item.id && styles.cityTabActive,
-              ]}
-              onPress={() => setSelected(item.id)}
-            >
-              <Text
-                style={[
-                  styles.cityTabText,
-                  selected === item.id && styles.cityTabTextActive,
-                ]}
-              >
-                {item.id}
-              </Text>
-            </TouchableOpacity>
-          )}
-        />
+      {boards.length > 0 && (
+        <View style={styles.cityTabsContainer}>
+          <FlatList
+            horizontal
+            data={boards}
+            keyExtractor={(b) => b.id}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.cityTabs}
+            renderItem={({ item }) => {
+              const formattedName = item.id
+                .split("-")
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" ");
+
+              return (
+                <TouchableOpacity
+                  style={[
+                    styles.cityTab,
+                    selected === item.id && styles.cityTabActive,
+                  ]}
+                  onPress={() => setSelected(item.id)}
+                >
+                  <Text
+                    style={[
+                      styles.cityTabText,
+                      selected === item.id && styles.cityTabTextActive,
+                    ]}
+                  >
+                    {formattedName}
+                  </Text>
+                  {selected === item.id && <View style={styles.activeDot} />}
+                </TouchableOpacity>
+              );
+            }}
+          />
+        </View>
       )}
 
       <FlatList
@@ -224,25 +243,48 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   title: { ...FONTS.h3, color: COLORS.text_primary },
+  cityTabsContainer: {
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border_subtle,
+    backgroundColor: COLORS.background,
+    paddingBottom: SPACING.s,
+  },
   cityTabs: {
     paddingHorizontal: SPACING.xxl,
-    gap: 8,
-    marginBottom: SPACING.l,
+    gap: 10,
   },
   cityTab: {
-    paddingHorizontal: 16,
-    paddingVertical: 7,
-    borderRadius: 20,
+    paddingHorizontal: 18,
+    paddingVertical: 8,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: COLORS.border,
     backgroundColor: COLORS.surface,
+    alignItems: "center",
+    justifyContent: "center",
+    minWidth: 80,
   },
   cityTabActive: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.primary + "15",
     borderColor: COLORS.primary,
   },
-  cityTabText: { ...FONTS.caption, color: COLORS.text_muted },
-  cityTabTextActive: { color: COLORS.white, fontFamily: "Inter-SemiBold" },
+  cityTabText: {
+    ...FONTS.caption,
+    color: COLORS.text_muted,
+    fontWeight: "500" as const,
+  },
+  cityTabTextActive: {
+    color: COLORS.primary,
+    fontFamily: "Inter-SemiBold",
+  },
+  activeDot: {
+    position: "absolute",
+    bottom: -6,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: COLORS.primary,
+  },
   podium: {
     flexDirection: "row",
     justifyContent: "center",

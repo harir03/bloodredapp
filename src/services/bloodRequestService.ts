@@ -252,4 +252,50 @@ export const bloodRequestService = {
       averageResponseHours: resolvedItems.length > 0 ? Number((totalHours / resolvedItems.length).toFixed(1)) : 0,
     };
   },
+
+  async getDailyStats(): Promise<{ labels: string[]; data: number[] }> {
+    const all = await getDocs(collection(db, COL));
+    const items = all.docs.map((d) => d.data() as BloodRequest);
+
+    const last7Days: Record<string, number> = {};
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().split("T")[0];
+      last7Days[key] = 0;
+    }
+
+    items.forEach(item => {
+      if (item.createdAt) {
+        const dateKey = item.createdAt.split("T")[0];
+        if (last7Days[dateKey] !== undefined) {
+          last7Days[dateKey]++;
+        }
+      }
+    });
+
+    const sortedKeys = Object.keys(last7Days).sort();
+    return {
+      labels: sortedKeys.map(k => k.split("-").slice(1).join("/")),
+      data: sortedKeys.map(k => last7Days[k])
+    };
+  },
+
+  async getStatsByCity(): Promise<{ labels: string[]; data: number[] }> {
+    const all = await getDocs(collection(db, COL));
+    const items = all.docs.map((d) => d.data() as BloodRequest);
+
+    const cityCounts: Record<string, number> = {};
+    items.forEach(item => {
+      if (item.city) {
+        cityCounts[item.city] = (cityCounts[item.city] || 0) + 1;
+      }
+    });
+
+    const entries = Object.entries(cityCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    return {
+      labels: entries.map(e => e[0]),
+      data: entries.map(e => e[1])
+    };
+  },
 };
