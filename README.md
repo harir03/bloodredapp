@@ -1,6 +1,6 @@
 # BloodConnect Ops 🩸
 
-BloodConnect Ops is a robust, cross-platform mobile application built with React Native (Expo) and Firebase. It serves as the operational backbone for a blood donation network, seamlessly connecting Donors, Field Volunteers, City Managers, and Administrators to facilitate life-saving blood requests and community events.
+BloodConnect Ops is a robust, cross-platform mobile application built with React Native (Expo) and Firebase. It serves as the operational backbone for a blood donation network, seamlessly connecting Donors, Field Volunteers, City Managers, and Administrators to facilitate life-saving blood requests and community events...
 
 <div align="center">
   <img src="https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" />
