@@ -20,7 +20,7 @@ BloodConnect Ops is a robust, cross-platform mobile application built with React
 
 ---
 
-## 🏗️ Overview & Architecture
+## 🏗️ Overview & Architectur
 
 Unlike a simple social app, BloodConnect Ops is an **operational management tool**. Its primary goal is to safely triage inbound blood requests, assign them to verified volunteers on the ground, manage regional blood drives (camps), and reward community engagement through a gamified leaderboard system.
 
